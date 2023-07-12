@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" style="scroll-behavior:initial">
 
 <head>
     <meta charset="utf-8">
@@ -12,19 +12,10 @@
     @routes
     @vite('resources/js/app.js')
     @inertiaHead
-
-    @if (Auth::check())
-        <script>window.authUser={!! json_encode(Auth::user()); !!};</script>
-    @else
-        <script>window.authUser=null;</script>
-    @endif
 </head>
 
-<body class="font-sans antialiased">
-
-
-
-    @inertia
+<body >
+        @inertia
 </body>
 
 </html>

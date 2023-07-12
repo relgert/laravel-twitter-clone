@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Article>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tweet>
  */
-class ArticleFactory extends Factory
+class TweetFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,9 +17,9 @@ class ArticleFactory extends Factory
     public function definition()
     {
         return [
-            'title' => $this->faker->sentence(6),
-            'excerpt' => $this->faker->paragraph(4),
-            'body' => $this->faker->paragraph(15),
+            'user_id'=>2,
+            'text' => $this->faker->sentence(6),
+
         ];
     }
 }
