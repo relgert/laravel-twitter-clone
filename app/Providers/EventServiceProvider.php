@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
+
+use App\Events\TweetCreatedEvent;
+use App\Listeners\SendTweetCreatedNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use App\Models\Tweet;
+use App\Observers\TweetObserver;
+use Throwable;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -18,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        TweetCreatedEvent::class => [
+            SendTweetCreatedNotification::class,
+        ],
     ];
 
     /**
@@ -25,7 +34,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Tweet::observe(TweetObserver::class);
     }
 
     /**

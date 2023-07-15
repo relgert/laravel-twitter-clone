@@ -11,14 +11,19 @@ use Inertia\Inertia;
 use Illuminate\Session\Middleware\AuthenticateSession;
 
 
+Route::get('/', [TweetController::class, 'index'])->name('home');
 
-Route::get('/', function () {
-    $data = Tweet::with('replies','favorites','retweets')->latest()->get();
-    dd($data);
-    return Inertia::render('Index', [
-        'tweets' => Tweet::with('replies')->latest()->get(),
-    ]);
-})->name('home');
+
+// Route::get('/', function () {
+//     return Inertia::render('Index', [
+//         'tweetPagination' => Tweet::with('favorites','parent')
+//         ->with(['replies'=>function($query) {
+//             return $query->limit(1);
+//         }])
+//         ->where('is_reply', null)
+//         ->paginate(3)
+//     ]);
+// })->name('home');
 
 Route::get('/login', function () {
     return Inertia::render('Login');
@@ -47,4 +52,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/users/edit/{id}', [UserController::class, 'edit']);
     Route::post('/users/edit/{id}', [UserController::class, 'edit_action']);
+
+    Route::get('/tweets', [TweetController::class, 'store'])->name('tweet.add');
 });
+
+

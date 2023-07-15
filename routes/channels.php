@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
+use App\Models\Tweet;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,4 +17,17 @@ use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
+});
+
+
+// Broadcast::channel('tweets.{tweetId}',  function (User $user, int $tweetId) {
+//     return $user->id === Tweet::findOrNew($tweetId)->user_id;
+// });
+
+// Broadcast::channel('tweets.1',  function (User $user, int $tweetId) {
+//     return true;
+// });
+
+Broadcast::channel('main', function ($user) {
+    return true;
 });
