@@ -12,6 +12,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 
 
 Route::get('/', [TweetController::class, 'index'])->name('home');
+Route::get('/timeline', [TweetController::class, 'timeline'])->name('timeline');
 
 
 // Route::get('/', function () {

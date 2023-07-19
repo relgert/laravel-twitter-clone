@@ -24,6 +24,7 @@ class TweetController extends Controller
         ->orderBy('id', 'desc')
         ->paginate(3);
 
+
         if($request->wantsJson()){
             return $tweets->toArray();
         }else{
@@ -31,6 +32,13 @@ class TweetController extends Controller
                 'tweetPagination' => $tweets
             ]);
         }
+    }
+
+
+    public function timeline(){
+        return Inertia::render('Timeline', [
+            'tweetPagination' => []
+        ]);
     }
 
 

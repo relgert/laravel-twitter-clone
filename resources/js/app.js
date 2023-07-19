@@ -25,9 +25,18 @@ createInertiaApp({
             .use(ZiggyVue, Ziggy)
             .mount(el);
     },
+    data(){
+        test:'123'
+    },
+    mounted(){
+        console.log('test');
+    }
 });
 
+
+
 InertiaProgress.init({ color: "#000000", showSpinner: true });
+
 
 livewire_hot_reload();
 
