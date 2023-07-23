@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/**
+Apply Scroll Bar Styles
+
+https://css-tricks.com/the-current-state-of-styling-scrollbars/
+*/
+html {
+  --scrollbarBG: #ffffff;
+  --thumbBG: rgb(141, 141, 141);
+}
+main::-webkit-scrollbar {
+  width: 11px;
+}
+main {
+  scrollbar-width: thin;
+
+}
+main::-webkit-scrollbar-track {
+  background: var(--scrollbarBG);
+}
+main::-webkit-scrollbar-thumb {
+  background-color: var(--thumbBG) ;
+  border-radius: 6px;
+  border: 3px solid var(--scrollbarBG);
+}
+
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  height: 100%;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#list_detail {
+
+  display: flex;
+  height: 100%;
+}
+
+.cont{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#list {
+  flex: 2;
+  height: 100%;
+}
+
+#detail {
+  flex: 1;
+  padding: 1rem;
+  overflow: auto;
+  height: 100%;
+}
+
+#root {
+    height:100%;
+  overflow: auto;
+}
+
+main{
+    height: 100vh;
+    padding:none;
+}
+
+.list-item {
+  padding:  0.25rem;
+  border-bottom: 1px solid rgba(58, 58, 58, 0.4);
+}

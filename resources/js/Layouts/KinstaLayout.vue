@@ -2,6 +2,10 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import router from '@inertiajs/inertia-vue3';
+import emitter from 'tiny-emitter/instance';
+
+
+
 
 
 export default {
@@ -11,11 +15,13 @@ export default {
         .stopListening('.test')
     },
     mounted() {
+
         window.Echo.private('main')
         .listen('.test', (e) => {
             this.newTweetsBufferMain.push(e.tweet);
-            console.log(this.newTweetsBufferMain);
         });
+
+        emitter.emit('some-event', 'arg1 valueee', 'arg2 value', 'arg3 value');
     },
     data() {
         return {

@@ -8,9 +8,11 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { ZiggyVue } from "../../vendor/tightenco/ziggy/dist/vue.m";
 import { InertiaProgress } from "@inertiajs/progress";
 import {livewire_hot_reload} from 'virtual:livewire-hot-reload'
+import { createPinia } from 'pinia'
 
 
 
+const pinia = createPinia()
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -22,14 +24,9 @@ createInertiaApp({
     setup({ el, app, props, plugin }) {
         return createApp({ render: () => h(app, props) })
             .use(plugin)
+            .use(pinia)
             .use(ZiggyVue, Ziggy)
             .mount(el);
-    },
-    data(){
-        test:'123'
-    },
-    mounted(){
-        console.log('test');
     }
 });
 

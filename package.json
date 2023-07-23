@@ -26,8 +26,10 @@
         "@inertiajs/inertia-vue3": "^0.6.0",
         "@inertiajs/progress": "^0.2.7",
         "pinia": "^2.1.4",
+        "tiny-emitter": "^2.1.0",
         "vue": "^3.2.36",
         "vue-faker": "^3.0.0",
+        "vue-router": "^4.2.4",
         "vue-underscore": "^0.1.4"
     }
 }

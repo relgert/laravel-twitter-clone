@@ -1,9 +1,15 @@
 <script>
 import {_} from 'vue-underscore';
+import { useVirtualListStore } from '../state/VirtualListStore';
+import { onActivated, onDeactivated } from 'vue';
+import TweetList  from '../Components/TweetList.vue'
+
+
+// This Virtual was taken from https://codepen.io/zupkode/pen/MWwgLyb, and added some functionalities
+
 // https://blog.codepen.io/2016/06/08/can-adjust-infinite-loop-protection-timing/
 //window.CP.PenTimer.MAX_TIME_IN_LOOP_WO_EXIT = 3000;
-const PAGE_SIZE = 50;
-const EMIT_ENABLED = false;
+const PAGE_SIZE = 10;
 
 
 // https://dev.to/adamklein/build-your-own-virtual-scroll-part-ii-3j86
@@ -89,45 +95,23 @@ const SearchMixin = {
     }
 };
 
-const DummyDataMixin = {
-    data() {
-        return {
-            minWordCount: 3,
-            maxWordCount: 50
-        };
-    },
-    methods: {
-        dummyData(currentLength) {
-            const items = [];
-            const length = PAGE_SIZE;
-            for (let i = 0; i < length; i++) {
-                const wordCount =
-                    this.minWordCount +
-                    Math.floor(Math.random() * (this.maxWordCount - this.minWordCount));
-                // For each item we take a UUID, an index and a value
-                // UUID clashes here will be bad
-                items.push({
-                    id: Math.random(),
-                    index: currentLength + i,
-                    value: "Item " + "see"
-                });
-            }
-            return items;
-        }
-    }
-};
+
 
 export default {
-    mixins: [DummyDataMixin, SearchMixin, PassiveSupportMixin],
+    mixins: [SearchMixin, PassiveSupportMixin],
+    props: ['paginationUrl'],
     data() {
+        let store = useVirtualListStore();
+        if(!store.data.isMounted){
+            store.data.url = this.paginationUrl;
+        }
+        return store.data;
         return {
             // Has the mount() been called yet atleast once?
             isMounted: false,
             // Are items currently loading as part of the infinite scroll?, handly if you got AJAX calls
             loading: false,
             // Should events corresponding to data changes be emitted from this component?
-            // Disable this in production to cut emitting events
-            emitEnabled: EMIT_ENABLED,
             // Index of the starting page, each page has PAGE_SIZE items
             pageStartIndex: 0,
             // Index of the first list item on DOM
@@ -205,7 +189,7 @@ export default {
         Subset of list items rendered on the DOM
         */
         visibleItems() {
-            return this.items.slice(this.startIndex, this.endIndex);
+            return this.items.slice(this.startIndex, this.endIndex+ 3);
         },
         /**
         Translate the spacer verticaly to keep the scrollbar intact
@@ -233,28 +217,15 @@ export default {
     },
     methods: {
         init() {
-            console.log('init');
-            this.isMounted = true;
-            // Insert the dummy data
-            const insertedItems = this.dummyData(this.items.length);
-            this.items.push(...insertedItems);
-
-            // Check if browser supports passive scroll and add scroll event listener
+            if(!this.isMounted){
+                this.isMounted = true;
+                this.callLoadMore();
+            }
             this.$el.addEventListener(
                 "scroll",
                 this.handleScroll,
                 this.doesBrowserSupportPassiveScroll() ? { passive: true } : false
             );
-
-            window.addEventListener("keydown", this.handleKeyDown);
-
-            // After the items are added when they are rendered on DOM, update the heights and other properties
-            this.$nextTick(() => {
-                this.update(insertedItems);
-                // this.update2();
-                // Observe one or multiple elements
-                this.emitEnabled && this.emit();
-            });
         },
         select(itemId) {
             this.selectedIndex = itemId;
@@ -288,47 +259,10 @@ export default {
                 });
             }
         },
-
-        handleKeyDown(event) {
-            return;
-            switch (event.keyCode) {
-                // In case of left arrow key move to the last item
-                case 37:
-                    if (this.selectedIndex > 0) {
-                        this.select(this.selectedIndex - 1);
-                        this.scrollTo(this.selectedIndex);
-                    }
-                    // Prevent the default scroll event from firing
-                    event.preventDefault();
-                    break;
-                // In case of up arrow key, move to the last item
-                case 38:
-                    if (this.selectedIndex > 0) {
-                        this.select(this.selectedIndex - 1);
-                        this.scrollTo(this.selectedIndex);
-                    }
-                    event.preventDefault();
-                    break;
-                // In case of right arrow key, move to the next item
-                case 39:
-                    if (this.selectedIndex < this.items.length - 1) {
-                        this.select(this.selectedIndex + 1);
-                        this.scrollTo(this.selectedIndex);
-                    }
-                    event.preventDefault();
-                    break;
-                // In case of down arrow key, move to the next item
-                case 40:
-                    if (this.selectedIndex < this.items.length - 1) {
-                        this.select(this.selectedIndex + 1);
-                        this.scrollTo(this.selectedIndex);
-                    }
-                    event.preventDefault();
-                    break;
+        update(insertedItems,insertAfter) {
+            if(!insertAfter){
+                insertedItems = insertedItems.reverse();
             }
-        },
-
-        update(insertedItems) {
             for (let i = 0; i < insertedItems.length; i++) {
                 // Get the id and index of the inserted items from the array
                 const { id, index } = insertedItems[i];
@@ -336,7 +270,12 @@ export default {
                 if (this.$refs[id] && this.$refs[id][0]) {
                     // Get the scroll height and update the height of the item at index
                     const height = this.$refs[id][0].scrollHeight;
-                    this.heights[index] = height;
+
+                    if(insertAfter){
+                        this.heights.push(height);
+                    }else{
+                        this.heights.unshift(height);
+                    }
                     // Update the largest and smallest row heights
                     this.largestRowHeight =
                         height > this.largestRowHeight ? height : this.largestRowHeight;
@@ -345,24 +284,45 @@ export default {
                     // Given an item index, compute the page index
                     // For example, any item index from 0 to 40 would translate to page index 0
                     // Any item with index 50 to 99 would translate to page index 1
-                    const pageIndex = Math.floor(index / PAGE_SIZE);
+                    if(insertAfter){
+                        const pageIndex = Math.floor(index / PAGE_SIZE);
+                        if (pageIndex === 0) {
+                            if (!this.rollingPageHeights[pageIndex]) {
+                                this.rollingPageHeights[pageIndex] = 0;
+                            }
+                        } else {
+                            if (!this.rollingPageHeights[pageIndex]) {
+                                this.rollingPageHeights[pageIndex] = this.rollingPageHeights[
+                                    pageIndex - 1
+                                ];
+                            }
+                        }
+                        //Add the height of the row to the total height of all rows on the current page
+                        this.rollingPageHeights[pageIndex] += height;
+                    }
+                }
+                // else {
+                //    console.log(id, "was not found");
+                // }
+            }
+            if(!insertAfter){
+                var newPageHeights = [];
+                for (var i=0; i < this.heights.length ; i++ ){
+                    const pageIndex = Math.floor(i / PAGE_SIZE);
                     if (pageIndex === 0) {
-                        if (!this.rollingPageHeights[pageIndex]) {
-                            this.rollingPageHeights[pageIndex] = 0;
+                        if (!newPageHeights[pageIndex]) {
+                            newPageHeights[pageIndex] = 0;
                         }
                     } else {
-                        if (!this.rollingPageHeights[pageIndex]) {
-                            this.rollingPageHeights[pageIndex] = this.rollingPageHeights[
+                        if (!newPageHeights[pageIndex]) {
+                            newPageHeights[pageIndex] = newPageHeights[
                                 pageIndex - 1
                             ];
                         }
                     }
-                    //Add the height of the row to the total height of all rows on the current page
-                    this.rollingPageHeights[pageIndex] += height;
+                    newPageHeights[pageIndex] += this.heights[i];
                 }
-                // else {
-                //   console.log(id, "was not found");
-                // }
+                this.rollingPageHeights = newPageHeights;
             }
             this.rootHeight = this.$el.offsetHeight;
             // Total height of the viewport is the sum of heights of all the rows on all the pages currently stored at the last index of page positions
@@ -374,200 +334,113 @@ export default {
         },
 
         handleScroll: _.throttle(function () {
-            console.log('handlescroll');
             const { scrollTop, offsetHeight, scrollHeight } = this.$el;
             this.scrollTop = scrollTop;
-            this.emitEnabled && this.emit();
-            console.log(scrollTop);
-            console.log(offsetHeight);
-            console.log(scrollHeight);
+
+
             if (scrollTop + offsetHeight >= scrollHeight - 10) {
-                this.loadMore();
+                this.callLoadMore();
             }
         }, 17),
-        loadMore() {
-            console.log('loadmore');
+        callLoadMore(){
+            if(!this.loading){
+                if (this.url === null) {
+                    return
+                }
+                this.loading =true;
+                axios
+                .get(this.url)
+                .then((response) => {
+                    this.url = response.data.next_page_url;
+                    this.tweets = response.data.data;
+                    let items = this.processItems(response.data.data,true);
+                    this.insertItems(items,true);
+                })
+            }
+        },
+        callLoadBefore(){
+            if(!this.loading){
+                if (this.url === null) {
+                    //return
+                }
+                this.loading =true;
+                axios
+                .get('/timeline')
+                .then((response) => {
+                    //this.url = response.data.next_page_url;
+                    this.tweets = response.data.data;
+                    let items = this.processItems(response.data.data,false);
+                    this.insertItems(items,false);
+                    //this.tweets = [...this.tweets, ...newTweets];
+                    //this.$inertia.remember(JSON.stringify({t:this.tweets,p:this.pagination}),'tweetFeed');
+
+                })
+            }
+        },
+        processItems(newItems,insertAfter){
+            const items = [];
+            const length = PAGE_SIZE;
+
+            for (let i = 0; i < newItems.length; i++) {
+
+                items.push({
+                    id: newItems[i].id,
+                    index: (insertAfter)?this.items.length + i:i,
+                    value: newItems[i]
+                });
+            }
+            var result = items.find(obj => {
+                return obj.id === 392
+            })
+            return items;
+        },
+        insertItems(insertedItems,insertAfter) {
             // Mark the loading status
-            this.loading = true;
             setTimeout(() => {
                 // Add more dummy data
-                const insertedItems = this.dummyData(this.items.length);
-                this.items.push(...insertedItems);
+                if(insertAfter){
+                    this.items.push(...insertedItems);
+                }else{
+                    this.items.map((obj) => {obj.index = obj.index + insertedItems.length;})
+                    this.items.unshift(...insertedItems);
+                }
+
                 // Very important to update the end index here to be the page size at this stage
                 // If you are on page 0 with 50 items and loaded 50 more items, endIndex is set to 100
                 // Without this step, the 50 new items on DOM are not rendered and therefore we dont get their heights
 
                 // REMOVING this LINE will CRASH THE ENTIRE COMPONENT
                 // If you have a better idea, you better comment :)
-                this.endIndex =
+                if(!insertAfter){
+                    this.$el.scrollTo({
+                        left: 0,
+                        top: 0,
+                    });
+                    this.startIndex = 0;
+                    this.endIndex = PAGE_SIZE + PAGE_SIZE;
+                }else{
+                    this.endIndex =
                     Math.floor(this.items[this.items.length - 1].index / PAGE_SIZE) *
                     PAGE_SIZE +
                     PAGE_SIZE;
+                }
+
                 this.$nextTick(() => {
                     // Update the heights for the newly inserted rows
-                    this.update(insertedItems);
+                    this.update(insertedItems,insertAfter);
                     // this.update2();
-                    this.emitEnabled && this.emit();
                     this.loading = false;
+
                 });
             }, 1);
         }
     },
     watch: {
-        /**
-        We just need a start index and an end index based on our current scroll top to decide which subset of the items to render
-        We also need to take care that the translateY value is according to our start index
-        There are multiple ways of doing this, feel free to try any of the methods our or comment to suggest a better method if you know
-        Let us again take the example of 2 pages 2000px and 2500px
-        rollingPageHeights: [2000, 4500]
-
-        Method 1
-        Using the scroll top, get the current page index
-        pageStartIndex = 0 if scroll top < 2000
-        startIndex = 0 x 50 = 0
-        pageStartIndex = 1 if scroll top >= 2000 and scroll top <= 4500
-        startIndex = 1 x 50 = 50
-        and so on...
-        End index for this combination can be calculated in many ways
-        One simple way is start index + 50
-        At page 0 we translate by 0 px
-        At page 1 we translate by height of page 0 = 2000px and so on
-        The change from 0 50 in the start index is rather abrupt and you can observe a flicker if going by this route
-        Also since the end index does not change, when you are at item 45, you can only see 5 more items because you ll have to scroll beyond 50 to see the next 50 items
-        If the height of the page is more than 50 items, we have a problem in this approach
-        startIndex = pageStartIndex * PAGE_SIZE
-        endIndex = startIndex + PAGE_SIZE
-        translateY = rollingPageHeights[pageStartIndex - 1] || 0 (for the 0th page)
-      This method does NOTgive a smooth scrolling experience because when you reach the end of the page, blank space is seen until you scroll beyond and the next page is loaded
-
-        Method 2
-        Here we are talking about a different method that involves guesstimating startIndex
-        Take 10 rows of different heights and their respective displacements from the top of the current page
-        10px => 0
-        20px => 0 + 10 = 10
-        30px => 10 + 20 = 30
-        40px => 10 + 20 + 30 = 60
-        35px => 10 + .. + 40 = 100
-        30px => 10 + .. + 35 = 135
-        25px => 10 + .. + 30 = 165
-        20px => 10 + .. + 25 = 190
-        35px => 10 + .. + 20 = 210
-        30px => 10 + .. + 35 = 245
-             => 10 + .. + 30 = 275
-        Given a scroll top we just need to find the start index
-        When the scroll top is below 10 we know that row 0 is at the top
-        We can find this by doing a binary search or a better alternative
-        We simply take the scroll top and integer divide by the largest item
-        It will always give a start index slighly above the scroll top
-
-        For example, let's say scroll top is 91 and largest row height is 40
-
-        startIndex = Math.floor(scrollTop / largest row height)
-        startIndex = Math.floor(91 / 40) = 2
-
-        If you did a binary search, 91 lies between 60 and 100 so the row start index could be either 3 or 4 depending on how you round it
-        But we arrived at a number 2 quickly without doing any search didn't we? That is the beauty of this method, its a O(1) operation instead of binary search which is O(logN)
-        The end index can be obtained by doing the exact opposite, which is to take the scroll top and height of the root element and dividing that by the smallest number
-        If the height of the root container is 100px and current scroll is the same
-
-        endIndex = Math.floor((scrollTop + container height) / smallest row height)
-        endIndex = Math.floor((91 + 100) / 10) = 19
-
-        Another way of calculating the endIndex would be
-
-        endIndex = startIndex + Math.floor(container height / smallest row height)
-        = 2 + Math.floor(100 / 10) = 12
-
-        As the scroll top is 91 and the total height of the visible area is 100 px, the user can see upto 191 px on screen
-        Any of the above ways of calculating the end index should give you an end index that lies well beyond the visible area
-        If you did a binary search to find where the end index lies, your value 191 lies between positions 7 and 8 depending on how you round it
-        But we did it in O(1) time without a binary search
-        Now all we need to do is apply the translate properly, our start index is 2, so we are starting at the row at index 2 which is 30px tall, translate is 10 + 20 = 30px
-        The only problem is that as we scroll down and down, the start and end index starts getting further and further apart and more and more items are rendered on the DOM
-        translateY = rowPositions[startIndex]
-
-
-        The solution to this problem is to adjust the start and end index on each
-        Take the example of 2 pages
-
-        Page 0
-        10px => 0
-        20px => 0 + 10 = 10
-        30px => 10 + 20 = 30
-        40px => 10 + 20 + 30 = 60
-        35px => 10 + .. + 40 = 100
-        30px => 10 + .. + 35 = 135
-        25px => 10 + .. + 30 = 165
-        20px => 10 + .. + 25 = 190
-        35px => 10 + .. + 20 = 210
-        30px => 10 + .. + 35 = 245
-             => 10 + .. + 30 = 275
-        Total height of page 0 = 10 + .. + 30 = 275px
-
-        Page 1
-        20px => 275
-        25px => 275 + 20 = 295
-        30px => 275 + 20 + 25 = 320
-        35px => 275 + .. + 30 = 350
-        35px => 275 + .. + 35 = 385
-        40px => 275 + .. + 35 = 420
-        30px => 275 + .. + 40 = 460
-        15px => 275 + .. + 30 = 490
-        30px => 275 + .. + 15 = 505
-        15px => 275 + .. + 30 = 535
-             => 275 + .. + 15 = 550
-        Total height of page 1 = 275px
-        Total height till the end of page 1 = 275 + 275 = 550px
-
-        Let us say the scroll top is currently at 325 and container height is 100px
-
-        Without adjustment
-
-        startIndex = Math.floor(scrollTop / largest row height)
-        startIndex = Math.floor(325 / 40) = 8, row 8 is actually on Page 0
-
-        endIndex = Math.floor((scrollTop + container height) / smallest row height)
-        endIndex = Math.floor((325 + 100) / 10) = 42 which is not even there!
-
-        If we use the previous technique of calculating the endIndex directly from the startIndex
-
-        endIndex = startIndex + Math.floor(container height / smallest row height)
-        endIndex = 8 + Math.floor((325 + 100) / 100)
-
-        As we scroll further and further, the DRIFT gets higher and higher
-
-        With adjustment
-
-        We know that the 1st 275px is of page 0 and has  10 rows, all we need to do is remove this from the current calculation
-
-        startIndex = total number of rows before current page + Math.floor((scrollTop - total height of all rows before current page) / largest row height)
-        startIndex = 10 rows of page 0 + Math.floor((325 - 275 px of page 0) / 40)	= 11
-
-        endIndex = total number of rows before current page + Math.floor((scrollTop + container height - total height of all rows before current page) / smallest row height)
-        endIndex = 10 + Math.floor((325 + 100 - 275) / 10) = 25
-
-        If we use the previous technique of calculating the endIndex directly from the startIndex
-
-        endIndex = startIndex + Math.floor(container height / smallest row height)
-        endIndex = 11 + Math.floor(100 / 10) = 21
-
-      The translate in this method is not applied properly and what I observed is the spacer keeps moving higher and higher and we see an increasing amount of blank space as we scroll down till the entire page is blank
-
-        Method 3
-        Do a binary search for the start index
-        The end index can be calculated either via binary search or from the start index using the formula below
-        endIndex = startIndex + Math.floor(container height / smallest row height)
-
-      This is the method currently USED
-
-
-        */
         scrollTop(newValue, oldValue) {
             this.pageStartIndex = this.binarySearch(
                 this.rollingPageHeights,
                 this.scrollTop
             );
-
             const startNodeIndex = Math.max(
                 0,
                 this.findStartNode(
@@ -590,38 +463,75 @@ export default {
         var ro = new ResizeObserver(entries => {
             for (let entry of entries) {
                 const cr = entry.contentRect;
-                console.log("Element:", entry.target, cr);
                 this.rootHeight = cr.height;
-                this.emitEnabled && this.emit();
-                //         const children = this.$refs.spacer.children;
-
-                //         for (let i = 0; i < children.length; i++) {
-                //           const { id, scrollHeight } = children[i];
-                //           const index = children[i].getAttribute("data-index");
-                //           console.log(index, scrollHeight, this.heights[index]);
-                //         }
             }
         });
         ro.observe(this.$el);
     },
     destroyed() {
         this.$el.removeEventListener("scroll", this.handleScroll);
-        window.removeEventListener("keydown", this.handleKeyDown);
         this.isMounted = false;
+    },
+    beforeUnmount(){
+        let store = useVirtualListStore();
+        store.data = this.$data;
+        console.log('unmount');
+    },
+    activated(){
+        this.$el.scrollTo({
+            left: 0,
+            top: this.scrollTop,
+        });
     }
 };
-
-
+</script>
+<script setup>
+import Trending  from '../Components/Trending.vue'
 </script>
 
+
 <template>
-    <div id="root" ref="root">
-        <div id="viewport" ref="viewport" :style="viewportStyle">
-            <div id="spacer" ref="spacer" :style="spacerStyle">
-                <div v-for="i in visibleItems" :key="i.id" class="list-item" :ref="i.id" :data-index="i.index">
-                    <div>{{ i.index + ' ' + i.value }}</div>
+    <div id="root" ref="root" class="p-0">
+        <div  style="display: flex;flex-wrap: wrap;">
+            <div style="width: 30rem;">
+                <div
+                    class="sticky-top"
+                    style="height:50px;background-color: white;border-bottom:1px solid gray;"
+                    @click="callLoadBefore">
+                                    Tweets Header
+                                </div>
+                <div id="viewport" ref="viewport" :style="viewportStyle">
+                    <div id="spacer" ref="spacer" :style="spacerStyle">
+                        <div class="card list-item fade-in-tweet" style="border-bottom:0px;"
+                            v-for="tweet in visibleItems" :key="tweet.id" :ref="tweet.id" :data-index="tweet.index">
+                            <slot name="tweet" v-bind="tweet"></slot>
+                        </div>
+                    </div>
                 </div>
+                <div style="">
+                    <div v-if="loading" style="text-align: center;padding:10px 0px 100px 0px;">
+                        Loading...
+                    </div>
+                    <div v-if="!url" style="text-align: center;padding:10px 0px 200px 0px;">
+                        No more Tweets
+                    </div>
+                </div>
+
             </div>
+            <div style="background-color:green;width:275px;position:sticky;top:0px;height:100%;" >
+
+                    <Trending :scrollTop="scrollTop"></Trending>
+
+            </div>
+
         </div>
     </div>
+
 </template>
+
+<style>
+.fade-in-tweet { animation: fadeIn 0.5s; }
+
+
+
+</style>

@@ -14,15 +14,23 @@ use Illuminate\Container\Container;
 
 class TweetController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
+        return Inertia::render('Index', [
+            'tweetPagination' => []
+        ]);
+    }
+
+
+    public function timeline(Request $request){
+        usleep(150000);
         $tweets = Tweet::with('favorites','parent')
         ->with(['replies'=>function($query) {
             return $query->limit(1);
         }])
         ->where('is_reply', null)
         ->orderBy('id', 'desc')
-        ->paginate(3);
+        ->paginate(10);
 
 
         if($request->wantsJson()){
@@ -32,13 +40,6 @@ class TweetController extends Controller
                 'tweetPagination' => $tweets
             ]);
         }
-    }
-
-
-    public function timeline(){
-        return Inertia::render('Timeline', [
-            'tweetPagination' => []
-        ]);
     }
 
 

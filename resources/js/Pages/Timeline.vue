@@ -1,124 +1,74 @@
 <script setup>
+import { shallowRef,watch } from 'vue'
 import KinstaLayout from "../Layouts/KinstaLayout.vue";
-import { Link, $router } from '@inertiajs/inertia-vue3';
+import { Link } from '@inertiajs/inertia-vue3';
 import { Inertia } from '@inertiajs/inertia';
 import VirtualList from '../Components/VirtualList.vue';
+import ShowComponent from '../Components/ShowComponent.vue';
+import { createWebHistory, createRouter } from "vue-router";
 
+let activeComponent = shallowRef(VirtualList)
+
+
+
+const routes = [
+  {
+    path: "/timeline",
+    name: "Timeline",
+    component: VirtualList,
+  },
+  {
+    path: "/tweet/:id",
+    name: "Tweet",
+    component: ShowComponent,
+  },
+];
+const router = createRouter({
+  history: createWebHistory('localhost'),
+  routes,
+});
+
+function change(){
+    if(this.activeComponent == ShowComponent){
+        this.activeComponent = VirtualList;
+        this.router.push('/timeline');
+    }else{
+        this.activeComponent = ShowComponent;
+        this.router.push('/tweet/1');
+    }
+
+}
+
+
+// watch(router.currentRoute, (data,data2) => {
+//     console.log(data);
+//     console.log(data2);
+//     return true;
+//    // Do something with the updated value.
+// });
 </script>
 <script>
-    export default {
-        layout: KinstaLayout,
-    }
+    import emitter from 'tiny-emitter/instance';
+
+
+    emitter.on('some-event', function (arg1, arg2, arg3) {
+        console.log(arg1);
+
+    });
 </script>
 
 
 
 
 <template>
-    <div id="list_detail">
-        <div id="list">
-            <VirtualList></VirtualList>
+        <div id="list_detail">
+            <div id="list">
+                <KeepAlive>
+                    <component :is="activeComponent"></component>
+                </KeepAlive>
+            </div>
         </div>
-    </div>
 </template>
-
-
-<style>
-@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-
-/**
-Apply Scroll Bar Styles
-
-https://css-tricks.com/the-current-state-of-styling-scrollbars/
-*/
-html {
-  --scrollbarBG: #ffffff;
-  --thumbBG: rgb(141, 141, 141);
-}
-main::-webkit-scrollbar {
-  width: 11px;
-}
-main {
-  scrollbar-width: thin;
-
-}
-main::-webkit-scrollbar-track {
-  background: var(--scrollbarBG);
-}
-main::-webkit-scrollbar-thumb {
-  background-color: var(--thumbBG) ;
-  border-radius: 6px;
-  border: 3px solid var(--scrollbarBG);
-}
-
-
-html {
-  height: 100%;
-}
-
-body {
-  min-height: 100%;
-  height: 100%;
-}
-
-#app {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-#list_detail {
-  display: flex;
-  height: 100%;
-}
-
-.cont{
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-#list {
-  flex: 2;
-  height: 100%;
-}
-
-#detail {
-  flex: 1;
-  padding: 1rem;
-  overflow: auto;
-  height: 100%;
-}
-
-#root {
-  height: 100vh;
-  overflow: auto;
-}
-
-main{
-    padding:none;
-}
-
-.list-item {
-  padding: 0.75rem 0.25rem;
-  border-bottom: 1px solid rgba(58, 58, 58, 0.4);
-}
-
-
-
-
-
-
-
-
-</style>
 
 
 
