@@ -9,7 +9,7 @@ class UserNotificationObserver
     /**
      * Handle the Tweet "created" event.
      */
-    public function created(UserNotification $tweet): void
+    public function created(UserNotification $notification): void
     {
         //TweetCreatedEvent::dispatch($tweet);
     }
@@ -17,7 +17,7 @@ class UserNotificationObserver
     /**
      * Handle the Tweet "updated" event.
      */
-    public function updated(UserNotification $tweet): void
+    public function updated(UserNotification $notification): void
     {
         //
     }
@@ -25,7 +25,7 @@ class UserNotificationObserver
     /**
      * Handle the Tweet "deleted" event.
      */
-    public function deleted(UserNotification $tweet): void
+    public function deleted(UserNotification $notification): void
     {
         //
     }
@@ -33,7 +33,7 @@ class UserNotificationObserver
     /**
      * Handle the Tweet "restored" event.
      */
-    public function restored(UserNotification $tweet): void
+    public function restored(UserNotification $notification): void
     {
         //
     }
@@ -41,7 +41,7 @@ class UserNotificationObserver
     /**
      * Handle the Tweet "force deleted" event.
      */
-    public function forceDeleted(UserNotification $tweet): void
+    public function forceDeleted(UserNotification $notification): void
     {
         //
     }
