@@ -20,7 +20,7 @@ class UserTest extends TestCase
         $this->seed();
         $user = User::first();
         $this->assertModelExists($user);
-        //$user->delete();
+        $user->delete();
         $this->assertModelMissing($user);
     }
 }
