@@ -5,7 +5,7 @@ import * as bootstrap from 'bootstrap';
 import { createApp, h } from "vue";
 import { createInertiaApp } from "@inertiajs/inertia-vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
-import { ZiggyVue } from "../../vendor/tightenco/ziggy/dist/vue.m";
+//import { ZiggyVue } from "../../vendor/tightenco/ziggy/dist/vue.m";
 import { InertiaProgress } from "@inertiajs/progress";
 import {livewire_hot_reload} from 'virtual:livewire-hot-reload'
 import { createPinia } from 'pinia'
@@ -27,7 +27,7 @@ createInertiaApp({
 
         return VueApp.use(plugin)
         .use(pinia)
-        .use(ZiggyVue, Ziggy)
+  //      .use(ZiggyVue, Ziggy)
         .mount(el);
     }
 });
