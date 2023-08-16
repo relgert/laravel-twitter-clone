@@ -17,7 +17,8 @@ class Tweet extends Model
 
     public function getLikedByUserAttribute()
     {
-        if(!empty($this)){
+        $favorite = null;
+        if(Auth::user()){
             $favorite = TweetFavorite::where('tweet_id', $this->id)->where('user_id',Auth::user()->id)->first();
         }
         return ($favorite)?true:false;
