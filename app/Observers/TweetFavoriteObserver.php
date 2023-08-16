@@ -6,6 +6,7 @@ use App\Models\TweetFavorite;
 use App\Models\UserNotification;
 use Auth;
 
+
 class TweetFavoriteObserver
 {
     /**
