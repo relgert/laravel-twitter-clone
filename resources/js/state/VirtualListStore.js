@@ -18,6 +18,8 @@ export const useVirtualListStore = defineStore('virtualList', {
                 items: [],
                 // Height of each row
                 heights: [],
+
+                pedingItems: [],
                 // Total height per page
                 // On page 0 , lets say all PAGE_SIZE rows add up to 2000
                 // On page 1, lets say all PAGE_SIZE rows add up to 2500, then

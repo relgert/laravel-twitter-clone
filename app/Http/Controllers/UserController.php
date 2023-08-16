@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use App\Models\UserFollowers;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -64,5 +68,27 @@ class UserController extends Controller
              ]);
         $User = User::create($credentials);
         return redirect('/users/create');
+    }
+
+    public function follow_user(Request $request): RedirectResponse{
+
+
+
+
+        $valid = $request->validate([
+            'followed_user_id' => [
+                Rule::unique('user_followers')
+                  ->where('followed_user_id', $request->followed_user_id)
+                  ->where('follower_user_id', Auth::user()->id)
+            ],
+        ]);
+
+
+        $userFollower = new UserFollowers;
+        $userFollower->followed_user_id = $valid['followed_user_id'];
+        $userFollower->follower_user_id = Auth::user()->id;
+        $userFollower->save();
+
+        return redirect('/');
     }
 }

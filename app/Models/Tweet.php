@@ -8,10 +8,20 @@ use \Illuminate\Database\Eloquent\Relations\HasMany;
 use \Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use \Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Auth;
 
 class Tweet extends Model
 {
     use HasFactory;
+    protected $appends= ['liked_by_user'];
+
+    public function getLikedByUserAttribute()
+    {
+        if(!empty($this)){
+            $favorite = TweetFavorite::where('tweet_id', $this->id)->where('user_id',Auth::user()->id)->first();
+        }
+        return ($favorite)?true:false;
+    }
 
 
 

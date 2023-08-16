@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
@@ -54,6 +55,11 @@ class User extends Authenticatable
 
     public function followers(): HasMany
     {
-        return $this->hasMany(UserFollowers::class,'user_id');
+        return $this->hasMany(UserFollowers::class,'followed_user_id');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(UserNotifications::class,'notified_user_id');
     }
 }

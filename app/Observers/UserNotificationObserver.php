@@ -2,23 +2,22 @@
 
 namespace App\Observers;
 
-use App\Models\Tweet;
-use App\Events\TweetFavoritedNotificationEvent;
+use App\Models\UserNotification;
 
-class TweetObserver
+class UserNotificationObserver
 {
     /**
      * Handle the Tweet "created" event.
      */
-    public function created(Tweet $notification): void
+    public function created(UserNotification $tweet): void
     {
-        TweetFavoritedNotificationEvent::dispatch($notification);
+        //TweetCreatedEvent::dispatch($tweet);
     }
 
     /**
      * Handle the Tweet "updated" event.
      */
-    public function updated(Tweet $notification): void
+    public function updated(UserNotification $tweet): void
     {
         //
     }
@@ -26,7 +25,7 @@ class TweetObserver
     /**
      * Handle the Tweet "deleted" event.
      */
-    public function deleted(Tweet $notification): void
+    public function deleted(UserNotification $tweet): void
     {
         //
     }
@@ -34,7 +33,7 @@ class TweetObserver
     /**
      * Handle the Tweet "restored" event.
      */
-    public function restored(Tweet $notification): void
+    public function restored(UserNotification $tweet): void
     {
         //
     }
@@ -42,7 +41,7 @@ class TweetObserver
     /**
      * Handle the Tweet "force deleted" event.
      */
-    public function forceDeleted(Tweet $notification): void
+    public function forceDeleted(UserNotification $tweet): void
     {
         //
     }

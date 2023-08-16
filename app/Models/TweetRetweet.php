@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserFollowers extends Model
+class TweetRetweet extends Model
 {
     use HasFactory;
 
@@ -15,8 +15,8 @@ class UserFollowers extends Model
         return $this->belongsTo(User::class,'user_id');
     }
 
-    public function follower(): HasMany
+    public function tweet(): HasMany
     {
-        return $this->belongsTo(User::class,'follower_user_id');
+        return $this->belongsTo(User::class,'tweet_id');
     }
 }

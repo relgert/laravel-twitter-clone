@@ -1,6 +1,14 @@
 <script>
 import VirtualList from '../Components/VirtualList.vue';
 import TweetList  from '../Components/TweetList.vue'
+import ShowComponent  from '../Components/ShowComponent.vue'
+import { router } from '@inertiajs/vue3'
+
+
+// router.get('/users', {
+//             name: 'John Doe',
+//             email: 'john.doe@example.com',
+//         })
 
 export default {
     layout: KinstaLayout,
@@ -18,6 +26,12 @@ export default {
             //     }
             // })
         }
+    },
+    mounted(){
+        console.log('mounted');
+    },
+    unmounted(){
+
     }
 }
 
@@ -26,6 +40,9 @@ export default {
 </script>
 <script setup>
 import KinstaLayout from "../Layouts/KinstaLayout.vue";
+
+
+
 </script>
 
 <template>
@@ -38,8 +55,8 @@ import KinstaLayout from "../Layouts/KinstaLayout.vue";
                             Tweets Header
                         </div>
                     </template> -->
-                    <template #tweet="tweet" v-slot:tweet>
-                        <TweetList :tweet="tweet"></TweetList>
+                    <template #tweetslot="{tweet, updateItem,updateItemPorperty}" >
+                        <TweetList :tweet="tweet" @updateItemEvent="updateItem" @updateItemPropertyEvent="updateItemPorperty"></TweetList>
                     </template>
                 </VirtualList>
             </KeepAlive>

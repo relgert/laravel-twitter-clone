@@ -216,6 +216,19 @@ export default {
         }
     },
     methods: {
+        handleUpdateItem(index,item){
+            this.items[index].data = item;
+            this.updateItemHeight(index,this.items[index].id);
+        },
+        handleUpdateItemProperty(index,path,data){
+            this.items[index].data[path] = data;
+        },
+        updateItemHeight(index,id){
+            if (this.$refs[id] && this.$refs[id][0]) {
+                this.heights[index] = this.$refs[id][0].scrollHeight;
+                this.updatePageHeights();
+            }
+        },
         init() {
             if(!this.isMounted){
                 this.isMounted = true;
@@ -306,23 +319,7 @@ export default {
                 // }
             }
             if(!insertAfter){
-                var newPageHeights = [];
-                for (var i=0; i < this.heights.length ; i++ ){
-                    const pageIndex = Math.floor(i / PAGE_SIZE);
-                    if (pageIndex === 0) {
-                        if (!newPageHeights[pageIndex]) {
-                            newPageHeights[pageIndex] = 0;
-                        }
-                    } else {
-                        if (!newPageHeights[pageIndex]) {
-                            newPageHeights[pageIndex] = newPageHeights[
-                                pageIndex - 1
-                            ];
-                        }
-                    }
-                    newPageHeights[pageIndex] += this.heights[i];
-                }
-                this.rollingPageHeights = newPageHeights;
+                this.updatePageHeights();
             }
             this.rootHeight = this.$el.offsetHeight;
             // Total height of the viewport is the sum of heights of all the rows on all the pages currently stored at the last index of page positions
@@ -332,7 +329,25 @@ export default {
                 this.rollingPageHeights.length - 1
             ];
         },
-
+        updatePageHeights(){
+            var newPageHeights = [];
+            for (var i = 0; i < this.heights.length; i++) {
+                const pageIndex = Math.floor(i / PAGE_SIZE);
+                if (pageIndex === 0) {
+                    if (!newPageHeights[pageIndex]) {
+                        newPageHeights[pageIndex] = 0;
+                    }
+                } else {
+                    if (!newPageHeights[pageIndex]) {
+                        newPageHeights[pageIndex] = newPageHeights[
+                            pageIndex - 1
+                        ];
+                    }
+                }
+                newPageHeights[pageIndex] += this.heights[i];
+            }
+            this.rollingPageHeights = newPageHeights;
+        },
         handleScroll: _.throttle(function () {
             const { scrollTop, offsetHeight, scrollHeight } = this.$el;
             this.scrollTop = scrollTop;
@@ -386,7 +401,7 @@ export default {
                 items.push({
                     id: newItems[i].id,
                     index: (insertAfter)?this.items.length + i:i,
-                    value: newItems[i]
+                    data: newItems[i]
                 });
             }
             var result = items.find(obj => {
@@ -486,14 +501,14 @@ export default {
 };
 </script>
 <script setup>
-import Trending  from '../Components/Trending.vue'
+    import Trending  from '../Components/Trending.vue'
 </script>
 
 
 <template>
     <div id="root" ref="root" class="p-0">
-        <div  style="display: flex;flex-wrap: wrap;">
-            <div style="width: 30rem;">
+        <div  style="display: flex;flex-wrap: nowrap;" >
+            <div style="min-width: 25rem;max-width: 35rem;width:100%;">
                 <div
                     class="sticky-top"
                     style="height:50px;background-color: white;border-bottom:1px solid gray;"
@@ -504,7 +519,7 @@ import Trending  from '../Components/Trending.vue'
                     <div id="spacer" ref="spacer" :style="spacerStyle">
                         <div class="card list-item fade-in-tweet" style="border-bottom:0px;"
                             v-for="tweet in visibleItems" :key="tweet.id" :ref="tweet.id" :data-index="tweet.index">
-                            <slot name="tweet" v-bind="tweet"></slot>
+                            <slot name="tweetslot" v-bind:tweet="tweet" :updateItem="handleUpdateItem" :updateItemPorperty="handleUpdateItemProperty"></slot>
                         </div>
                     </div>
                 </div>
@@ -518,9 +533,9 @@ import Trending  from '../Components/Trending.vue'
                 </div>
 
             </div>
-            <div style="background-color:green;width:275px;position:sticky;top:0px;height:100%;" >
+            <div style="background-color:green;min-width:200px;max-width:250px;width:100%;position:sticky;top:0px;height:100%;" class="d-none d-md-inline">
 
-                    <Trending :scrollTop="scrollTop"></Trending>
+                    <Trending :scrollTop="scrollTop" ></Trending>
 
             </div>
 

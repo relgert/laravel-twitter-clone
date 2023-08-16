@@ -42,11 +42,15 @@ Route::view('/home','welcome')->name('home2');
 //Route::view('dashboard','dashboard');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/', [TweetController::class, 'index'])->name('home');
+    Route::get('/timeline', [TweetController::class, 'timeline'])->name('timeline');
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::view('dashboard','dashboard');
 
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/user/{id}', [UserController::class, 'show']);
+
+    Route::post('/users/follow_user', [UserController::class, 'follow_user'])->name('follow_user');
 
     Route::get('/users/create', [UserController::class, 'create']);
     Route::post('/users/create', [UserController::class, 'create_action']);
@@ -55,6 +59,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/users/edit/{id}', [UserController::class, 'edit_action']);
 
     Route::get('/tweets', [TweetController::class, 'store'])->name('tweet.add');
+
+    Route::post('/favorite_tweet', [TweetController::class, 'favorite_tweet'])->name('favorite_tweet');
+    Route::post('/unfavorite_tweet', [TweetController::class, 'unfavorite_tweet'])->name('unfavorite_tweet');
+
 });
 
 

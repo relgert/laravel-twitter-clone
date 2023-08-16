@@ -11,7 +11,6 @@ import {livewire_hot_reload} from 'virtual:livewire-hot-reload'
 import { createPinia } from 'pinia'
 
 
-
 const pinia = createPinia()
 
 createInertiaApp({
@@ -22,13 +21,17 @@ createInertiaApp({
             import.meta.glob("./Pages/**/*.vue")
         ),
     setup({ el, app, props, plugin }) {
-        return createApp({ render: () => h(app, props) })
-            .use(plugin)
-            .use(pinia)
-            .use(ZiggyVue, Ziggy)
-            .mount(el);
+        const VueApp = createApp({ render: () => h(app, props) });
+        console.log(route);
+        VueApp.config.globalProperties.$route = route;
+
+        return VueApp.use(plugin)
+        .use(pinia)
+        .use(ZiggyVue, Ziggy)
+        .mount(el);
     }
 });
+
 
 
 
