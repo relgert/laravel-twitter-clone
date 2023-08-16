@@ -61,10 +61,6 @@ class TweetController extends Controller
         $newTweet->text = $faker->sentence(6);
 
         $newTweet->save();
-
-
-
-
         //return redirect('/users/create');
     }
 

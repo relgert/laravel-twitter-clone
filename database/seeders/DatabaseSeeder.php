@@ -12,5 +12,7 @@ class DatabaseSeeder extends Seeder
     {
 
         User::factory(1)->create();
+
+        Tweet::factory(10)->create();
     }
 }

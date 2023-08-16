@@ -12,11 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tweets', function (Blueprint $table) {
-            $table->id();
-            $table->integer('user_id');
+            $table->increments('id');
+            $table->unsignedInteger('parent_id')->nullable();
+            $table->unsignedInteger('user_id');
             $table->string('text');
+            $table->boolean('is_reply')->nullable();
+            $table->boolean('is_retweet')->nullable();
+            $table->integer('count_replies')->default(0);
+            $table->integer('count_favorites')->default(0);
+            $table->integer('count_retweets')->default(0);
             $table->timestamps();
 
+            $table->index('parent_id');
+            $table->index('user_id');
         });
     }
 

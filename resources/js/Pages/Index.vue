@@ -49,7 +49,7 @@ import KinstaLayout from "../Layouts/KinstaLayout.vue";
     <div id="list_detail">
         <div id="list">
             <KeepAlive>
-                <VirtualList :paginationUrl="'/timeline?page=2'">
+                <VirtualList :paginationUrl="'/timeline'">
                     <!-- <template v-slot:header>
                         <div class="sticky-top" style="height:50px;background-color: white;border-bottom:1px solid gray;max-width: 40rem;">
                             Tweets Header
