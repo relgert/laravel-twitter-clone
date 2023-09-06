@@ -1,0 +1,55 @@
+version: "3"
+services:
+  myapp:
+    image: myapp
+    build:
+      context: .
+    depends_on:
+      - redis
+      - mysql
+    ports:
+      - 8080:80
+    volumes:
+      - myapp:/var/www/html/storage
+    ## we wait for the MySQL container to be up and running
+    ## then we run the migration
+    ## and finally we start apache
+    entrypoint: sh -c "sleep 30 && php /var/www/html/artisan migrate && apache2-foreground"
+
+  queue:
+    image: myapp
+    depends_on:
+      - myapp
+    volumes:
+      - myapp:/var/www/html/storage
+    ## for the queue worker, we use the same image, but run
+    ## artisan queue:work
+    entrypoint: php /var/www/html/artisan queue:work --verbose --tries=3 --timeout=60
+
+  scheduler:
+    image: myapp
+    depends_on:
+      - myapp
+    ## for the scheduler we use an infinite while loop
+    entrypoint: sh -c "while true; do php /var/www/html/artisan schedule:run --verbose & sleep 60; done"
+
+  redis:
+    image: redis:4-alpine
+    volumes:
+      - redis:/data
+
+  mysql:
+    image: mysql:8.0
+    volumes:
+      - mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: myapp
+
+volumes:
+  myapp:
+    driver: "local"
+  redis:
+    driver: "local"
+  mysql:
+    driver: "local"

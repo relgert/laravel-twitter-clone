@@ -1,0 +1,79 @@
+version: "3.7"
+services:
+  app:
+    depends_on:
+      db:
+          condition: service_healthy
+    build:
+      args:
+        user: giovanni
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: relgert/twitterclone
+    container_name: twitterclone-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+
+  db:
+    image: mysql:8.0
+    container_name: twitterclone-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_ROOT_PASSWORD: pepe123
+    ports:
+      - 3307:3306
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+
+  nginx:
+    image: nginx:alpine
+    container_name: twitterclone-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: twitterclone-redis
+    restart: always
+    volumes:
+      - redisdata:/data
+
+  horizon:
+    image: relgert/twitterclone
+    container_name: twitterclone-horizon
+    restart: always
+    command: "php artisan horizon"
+    volumes:
+      - ./:/var/www
+
+  node:
+    image: node:18-alpine
+    restart: unless-stopped
+    container_name: twitterclone-node
+    ports:
+        - "3000:3000"
+    working_dir: /var/www
+    tty: true
+    volumes:
+        - .:/var/www
+    command: "npm run dev"
+
+volumes:
+  dbdata:
+  redisdata:
+  appdata:
