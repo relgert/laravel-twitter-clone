@@ -1,0 +1,166 @@
+<script setup>
+import { ref, reactive } from 'vue';
+import emitter from 'tiny-emitter/instance';
+
+
+const emit = defineEmits(['onSuccess'])
+// no need to import defineEmits
+const props = defineProps(['tweet']);
+const tweet = reactive(props.tweet);
+
+
+
+const url = '/tweets/'+tweet.id+'/reply';
+
+const tweetText = ref('');
+
+
+const input = ref(null)
+
+
+function emitNewTweet(response){
+    if(response.is_reply){
+        return;
+    }
+    emitter.emit('createdTweets', [response]);
+}
+
+function postTweet() {
+    axios
+        .post(url, { text: tweetText.value })
+        .then((response) => {
+            emitNewTweet(response.data);
+            clearForm();
+            emit('onSuccess',response.data);
+        })
+}
+
+function clearForm() {
+    tweetText.value = '';
+    updateHeight();
+}
+
+function updateHeight() {
+    input.value.style.height = ""
+    input.value.style.height = '42px';
+    input.value.focus();
+}
+</script>
+
+<template>
+    <div class="tweet-post" >
+        <div class="tweet-post-body">
+            <div class="tweet-post-thread">
+                <img :src="tweet.user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
+                <div class="graybar"></div>
+            </div>
+
+            <div class="tweet-post-text">{{ tweet.text }}</div>
+        </div>
+        <div class="tweet-post-body">
+            <img :src="$page.props.auth.user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
+            <div style="width:100%;">
+                <textarea ref="input" v-model="tweetText" placeholder="Post your reply"
+                    oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' maxlength="280">
+                </textarea>
+            </div>
+        </div>
+        <div class="tweet-post-footer">
+            <div class="tweet-post-actions">
+                <i class="bi bi-image"></i>
+                <i class="bi bi-filetype-gif"></i>
+                <i class="bi bi-emoji-smile"></i>
+                <i class="bi bi-list-task"></i>
+                <i class="bi bi-calendar2-plus"></i>
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <button type="button" class="btn btn-primary" :disabled="tweetText.length == 0"
+                @click="postTweet">Post</button>
+        </div>
+    </div>
+</template>
+
+
+<style>
+
+.modal-header{
+    padding:15px 10px 0px 15px;
+    border: none;
+}
+
+.modal-header .btn-close{
+    padding:7px !important;
+    border-radius: 20px;
+    font-size: 0.6rem;
+}
+.modal-header .btn-close:hover{
+    background-color: #ccc;
+
+}
+
+.tweet-post {
+    padding: 0px;
+}
+
+.tweet-post-body{
+    display: flex;
+    flex-direction: row;
+    padding:10px;
+}
+
+.tweet-post-text{
+    padding:9px;
+    padding-bottom: 20px;
+    color: rgba(15,20,25,1.00);
+    white-space: pre-wrap;
+}
+
+.tweet-post textarea {
+    resize: none;
+    width: 100%;
+    height: fit-content;
+    max-height: 300px;
+    border: none;
+    margin-left: 10px;
+    margin-top: 5px;
+}
+.tweet-post-thread{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.graybar{
+    background-color: rgb(199, 199, 199);
+    width: 2px;
+    height: 100%;
+    margin-top:5px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tweet-post textarea:focus {
+    outline: none !important;
+    border: none;
+    box-shadow: none;
+}
+
+.tweet-post-footer {
+    display: flex;
+    flex-direction: row;
+    justify-items: space-between;
+    padding:10px;
+}
+
+.tweet-post-footer .tweet-post-actions {
+    color:rgb(29, 155, 240);
+    cursor:pointer;
+}
+.tweet-post-footer .tweet-post-actions i{
+    padding:7px 8px;
+    border-radius: 20px;
+}
+.tweet-post-footer .tweet-post-actions i:hover{
+    background-color: rgba(29, 155, 240, 0.2);
+}
+</style>

@@ -1,8 +1,9 @@
 <script>
 import {_} from 'vue-underscore';
 import { useVirtualListStore } from '../state/VirtualListStore';
-import { onActivated, onDeactivated } from 'vue';
+import { onActivated, onDeactivated, toRefs } from 'vue';
 import TweetList  from '../Components/TweetList.vue'
+import emitter from 'tiny-emitter/instance';
 
 
 // This Virtual was taken from https://codepen.io/zupkode/pen/MWwgLyb, and added some functionalities
@@ -99,51 +100,28 @@ const SearchMixin = {
 
 export default {
     mixins: [SearchMixin, PassiveSupportMixin],
-    props: ['paginationUrl'],
+    props: {
+        paginationUrl:{type: String},
+        vPendingItems:{type: Array,default: []},
+        vStore:{type: Object,default: null},
+        vTopItems:{type: Array,default: []},
+        vName:{type: String,default:'virtual'},
+        vAlwaysUpdate:{type: Boolean, default:false}
+    },
     data() {
-        let store = useVirtualListStore();
-        if(!store.data.isMounted){
-            store.data.url = this.paginationUrl;
-        }
-        return store.data;
-        return {
-            // Has the mount() been called yet atleast once?
-            isMounted: false,
-            // Are items currently loading as part of the infinite scroll?, handly if you got AJAX calls
-            loading: false,
-            // Should events corresponding to data changes be emitted from this component?
-            // Index of the starting page, each page has PAGE_SIZE items
-            pageStartIndex: 0,
-            // Index of the first list item on DOM
-            startIndex: 0,
-            endIndex: PAGE_SIZE,
-            // List of all the items out of which a subset will be rendered on DOM
-            items: [],
-            // Height of each row
-            heights: [],
-            // Total height per page
-            // On page 0 , lets say all PAGE_SIZE rows add up to 2000
-            // On page 1, lets say all PAGE_SIZE rows add up to 2500, then
-            // rollingPageHeights: [2000, 4500]
-            // page 1 = page 0 height of PAGE_SIZE items + page 1 height of PAGE_SIZE items
-            rollingPageHeights: [],
-            // Height of the smallest row
-            smallestRowHeight: Number.MAX_SAFE_INTEGER,
-            // Height of the largest row
-            largestRowHeight: Number.MIN_SAFE_INTEGER,
-            // How much to shift the spacer vertically so that the scrollbar is not disturbed when hiding items
-            translateY: 0,
-            // Height of the outermost div inside which all the list items are present
-            rootHeight: 0,
-            // Total height of all the rows of all the pages
-            viewportHeight: 0,
-            // Current scroll position
-            scrollTop: 0,
-            renderAhead: 10,
 
-            // The id of the currently selected item, by default set to 0
-            selectedIndex: 0
-        };
+
+        let virtualListStore = useVirtualListStore(this.paginationUrl)();
+        if(this.vAlwaysUpdate){
+            virtualListStore.data.isMounted = false;
+            virtualListStore.data.items = [];
+        }
+
+        if(!virtualListStore.data.isMounted){
+            virtualListStore.data.url = this.paginationUrl;
+        }
+        virtualListStore.data.showFloatingButton = false;
+        return virtualListStore.data;
     },
     computed: {
         /**  If the current page is 0, take a slice of the heights of all rows from index 0 to 49
@@ -196,9 +174,10 @@ export default {
         We only show N items at a time so the scrollbar would get affected if we dont translate
         */
         spacerStyle() {
+            let t = this.translateY - 3 ;
             return {
                 willChange: "auto",
-                transform: "translateY(" + this.translateY + "px)"
+                transform: "translateY(" + t + "px)"
             };
         },
         /**
@@ -209,29 +188,45 @@ export default {
         viewportStyle() {
             return {
                 height: this.viewportHeight + "px",
-                overflow: "hidden",
                 position: "relative",
                 willChange: "auto"
             };
         }
     },
     methods: {
-        handleUpdateItem(index,item){
-            this.items[index].data = item;
+        addPendingItem(item){
+            this.pendingItems.push(item);
+            this.centerFloatingButton();
+        },
+        showPendingItems(){
+            let items = this.processItems(this.vPendingItems,false);
+            this.insertItems(items,false,false);
+            //this.pendingItems = [];
+            emitter.emit('cleanPendingItems');
+        },
+        myEventHandler(){
+            this.centerFloatingButton();
+        },
+        centerFloatingButton(){
+            this.$refs['floating-button'].style.left = this.$refs['vlist-container'].offsetLeft + (this.$refs['vlist-container'].clientWidth / 2) - 60 + 'px';
+            this.$refs['floating-button'].style.top = this.$refs['viewport'].offsetTop + 20 + 'px';
+        },
+        handleUpdateItem(index){
             this.updateItemHeight(index,this.items[index].id);
         },
         handleUpdateItemProperty(index,path,data){
             this.items[index].data[path] = data;
         },
         updateItemHeight(index,id){
-            if (this.$refs[id] && this.$refs[id][0]) {
-                this.heights[index] = this.$refs[id][0].scrollHeight;
+            if (this.$refs[id+'-'+index] && this.$refs[id+'-'+index][0]) {
+                this.heights[index] = this.$refs[id+'-'+index][0].scrollHeight;
                 this.updatePageHeights();
             }
         },
         init() {
             if(!this.isMounted){
                 this.isMounted = true;
+                this.initTopItems();
                 this.callLoadMore();
             }
             this.$el.addEventListener(
@@ -239,6 +234,13 @@ export default {
                 this.handleScroll,
                 this.doesBrowserSupportPassiveScroll() ? { passive: true } : false
             );
+        },
+        initTopItems(){
+            let topI = this.processItems(this.vTopItems,false);
+            this.insertItems(topI,false,true);
+
+
+
         },
         select(itemId) {
             this.selectedIndex = itemId;
@@ -272,7 +274,7 @@ export default {
                 });
             }
         },
-        update(insertedItems,insertAfter) {
+        update(insertedItems,insertAfter,isTop) {
             if(!insertAfter){
                 insertedItems = insertedItems.reverse();
             }
@@ -280,14 +282,26 @@ export default {
                 // Get the id and index of the inserted items from the array
                 const { id, index } = insertedItems[i];
                 // Check if the id has been rendered on DOM and is available
-                if (this.$refs[id] && this.$refs[id][0]) {
+                if (this.$refs[id+'-'+index] && this.$refs[id+'-'+index][0]) {
                     // Get the scroll height and update the height of the item at index
-                    const height = this.$refs[id][0].scrollHeight;
+                    const height = this.$refs[id+'-'+index][0].scrollHeight;
 
                     if(insertAfter){
                         this.heights.push(height);
                     }else{
-                        this.heights.unshift(height);
+                        if(isTop){
+                            this.heights.unshift(height);
+                        }else{
+                            let tmp =[];
+                            for(i = 0;i < this.vTopItems.length;i++){
+                                tmp.unshift(this.heights.shift());
+                            }
+                            this.heights.unshift(height);
+                            for(i = 0;i < this.vTopItems.length;i++){
+                                this.heights.unshift(tmp[i]);
+                            }
+                        }
+
                     }
                     // Update the largest and smallest row heights
                     this.largestRowHeight =
@@ -367,9 +381,8 @@ export default {
                 .get(this.url)
                 .then((response) => {
                     this.url = response.data.next_page_url;
-                    this.tweets = response.data.data;
                     let items = this.processItems(response.data.data,true);
-                    this.insertItems(items,true);
+                    this.insertItems(items,true,false);
                 })
             }
         },
@@ -383,12 +396,8 @@ export default {
                 .get('/timeline')
                 .then((response) => {
                     //this.url = response.data.next_page_url;
-                    this.tweets = response.data.data;
                     let items = this.processItems(response.data.data,false);
-                    this.insertItems(items,false);
-                    //this.tweets = [...this.tweets, ...newTweets];
-                    //this.$inertia.remember(JSON.stringify({t:this.tweets,p:this.pagination}),'tweetFeed');
-
+                    this.insertItems(items,false,false);
                 })
             }
         },
@@ -403,21 +412,33 @@ export default {
                     index: (insertAfter)?this.items.length + i:i,
                     data: newItems[i]
                 });
+                if(this.vStore){
+                    this.vStore.add(newItems[i]);
+                }
             }
-            var result = items.find(obj => {
-                return obj.id === 392
-            })
             return items;
         },
-        insertItems(insertedItems,insertAfter) {
+        insertItems(insertedItems,insertAfter,isTop) {
             // Mark the loading status
             setTimeout(() => {
                 // Add more dummy data
                 if(insertAfter){
                     this.items.push(...insertedItems);
                 }else{
-                    this.items.map((obj) => {obj.index = obj.index + insertedItems.length;})
-                    this.items.unshift(...insertedItems);
+                    if(isTop){
+                        this.items.map((obj) => {obj.index = obj.index + insertedItems.length;})
+                        this.items.unshift(...insertedItems);
+                    }else{
+                        let tmp = [];
+                        for(var i = 0;i < this.vTopItems.length;i++){
+                            tmp.unshift(this.items.shift());
+                        }
+                        insertedItems.map((obj) => {obj.index = obj.index + this.vTopItems.length;})
+                        this.items.map((obj) => {obj.index = obj.index + insertedItems.length;})
+                        this.items.unshift(...insertedItems);
+                        this.items.unshift(...tmp);
+                    }
+
                 }
 
                 // Very important to update the end index here to be the page size at this stage
@@ -434,15 +455,18 @@ export default {
                     this.startIndex = 0;
                     this.endIndex = PAGE_SIZE + PAGE_SIZE;
                 }else{
-                    this.endIndex =
-                    Math.floor(this.items[this.items.length - 1].index / PAGE_SIZE) *
-                    PAGE_SIZE +
-                    PAGE_SIZE;
+                    if(this.items.length){
+                        this.endIndex =
+                        Math.floor(this.items[this.items.length - 1].index / PAGE_SIZE) *
+                        PAGE_SIZE +
+                        PAGE_SIZE;
+                    }
+
                 }
 
                 this.$nextTick(() => {
                     // Update the heights for the newly inserted rows
-                    this.update(insertedItems,insertAfter);
+                    this.update(insertedItems,insertAfter,isTop);
                     // this.update2();
                     this.loading = false;
 
@@ -482,15 +506,33 @@ export default {
             }
         });
         ro.observe(this.$el);
+
+        emitter.on('createdTweets', createTweet => {
+            let items = this.processItems(createTweet,false);
+            this.insertItems(items,false,false);
+        });
+
+
+
+        emitter.on('addPendingItems', newItem => {
+            this.addPendingItem(newItem,false);
+        });
+
+        this.centerFloatingButton();
+        window.addEventListener("resize", this.myEventHandler);
+
+
+    },
+    beforeUnmount(){
+        window.removeEventListener("resize", this.myEventHandler);
+        let virtualListStore = useVirtualListStore(this.paginationUrl)();
+        virtualListStore.data = this.$data;
+        emitter.off('createdTweets');
+        emitter.off('addPendingItems');
     },
     destroyed() {
         this.$el.removeEventListener("scroll", this.handleScroll);
         this.isMounted = false;
-    },
-    beforeUnmount(){
-        let store = useVirtualListStore();
-        store.data = this.$data;
-        console.log('unmount');
     },
     activated(){
         this.$el.scrollTo({
@@ -506,47 +548,105 @@ export default {
 
 
 <template>
-    <div id="root" ref="root" class="p-0">
+    <div id="root" ref="root" class="p-0" >
         <div  style="display: flex;flex-wrap: nowrap;" >
-            <div style="min-width: 25rem;max-width: 35rem;width:100%;">
-                <div
-                    class="sticky-top"
-                    style="height:50px;background-color: white;border-bottom:1px solid gray;"
-                    @click="callLoadBefore">
-                                    Tweets Header
-                                </div>
-                <div id="viewport" ref="viewport" :style="viewportStyle">
+            <div ref="vlist-container" style="min-width: 25rem;max-width: 35rem;width:100%;">
+                <div class="sticky-top vlist-header">
+                    <slot name="header" :updateHeader="handleUpdateItem"></slot>
+                </div>
+
+                <div class="more" ref="floating-button" @click="showPendingItems" v-show="vPendingItems.length > 0">
+                    See New Posts
+                </div>
+                <div id="viewport" ref="viewport" :style="viewportStyle" class="vlist">
                     <div id="spacer" ref="spacer" :style="spacerStyle">
-                        <div class="card list-item fade-in-tweet" style="border-bottom:0px;"
-                            v-for="tweet in visibleItems" :key="tweet.id" :ref="tweet.id" :data-index="tweet.index">
-                            <slot name="tweetslot" v-bind:tweet="tweet" :updateItem="handleUpdateItem" :updateItemPorperty="handleUpdateItemProperty"></slot>
+                        <div class="vlist-item fade-in-tweet"
+                            v-for="vitem in visibleItems" :key="vitem.id+'-'+vitem.index" :ref="vitem.id+'-'+vitem.index">
+                            <slot name="vitemslot" v-bind:vitem="vitem.data" v-bind:vindex="vitem.index" :updateItem="handleUpdateItem" :updateItemPorperty="handleUpdateItemProperty"></slot>
                         </div>
                     </div>
                 </div>
                 <div style="">
                     <div v-if="loading" style="text-align: center;padding:10px 0px 100px 0px;">
-                        Loading...
+                        <img src="/images/loading.gif" height="50" />
                     </div>
+
                     <div v-if="!url" style="text-align: center;padding:10px 0px 200px 0px;">
-                        No more Tweets
+
                     </div>
+
                 </div>
 
             </div>
-            <div style="background-color:green;min-width:200px;max-width:250px;width:100%;position:sticky;top:0px;height:100%;" class="d-none d-md-inline">
+            <div style="min-width:200px;max-width:250px;width:100%;position:sticky;top:0px;height:100%;" class="d-none d-md-inline">
 
                     <Trending :scrollTop="scrollTop" ></Trending>
 
             </div>
 
         </div>
+
     </div>
 
 </template>
 
 <style>
+
+
+.more{
+    z-index: 100;
+    position:absolute;
+    color:white;
+    width:120px;
+    background-color: rgb(26, 140, 216);
+    border-radius: 15px;
+    color:white;
+    font-weight: bold;
+    font-size: 0.7rem;
+    text-align: center;
+    padding:8px 15px;
+    cursor:pointer;
+}
+.more:hover{
+    background-color: rgb(53, 162, 235);;
+}
+
+
 .fade-in-tweet { animation: fadeIn 0.5s; }
 
+
+.vlist{
+    /* border:1px solid rgb(239, 243, 244); */
+}
+
+.vlist-header{
+    height:auto;
+    border-bottom:1px solid rgb(209, 209, 209);
+    backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.85);
+    height: 53px;
+    padding:10px;
+    padding-top:20px;
+    font-weight: bold;
+}
+
+.vlist-item {
+    border:1px solid rgb(239, 243, 244);
+    border-top:0px solid gray;
+}
+
+.header-back-button{
+    border-radius: 20px;
+}
+
+.header-back-button i{
+    padding:7px 8px;
+
+}
+.header-back-button i:hover{
+    background-color: #e9e9e9;
+    border-radius: 20px;
+}
 
 
 </style>

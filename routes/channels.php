@@ -28,6 +28,18 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 //     return true;
 // });
 
-Broadcast::channel('main', function ($user) {
+
+
+Broadcast::channel('user.{userId}',  function (User $user, int $userId) {
+    return $user->id === $userId;
+});
+
+Broadcast::channel('main',  function (User $user) {
     return true;
 });
+
+Broadcast::channel('tweet_update.{tweetId}',  function (User $user, int $tweetId) {
+    return true;
+});
+
+

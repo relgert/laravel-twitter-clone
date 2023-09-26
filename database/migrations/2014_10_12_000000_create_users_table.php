@@ -14,9 +14,16 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('handle');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('profile_picture')->nullable();
+            $table->string('profile_background')->nullable();
+            $table->string('profile_bio')->nullable();
+            $table->integer('pending_notifications')->default(0);
+            $table->integer('following_count')->default(0);
+            $table->integer('followers_count')->default(0);
             $table->rememberToken();
             $table->timestamps();
         });
@@ -27,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //Schema::dropIfExists('users');
+        Schema::dropIfExists('users');
     }
 };

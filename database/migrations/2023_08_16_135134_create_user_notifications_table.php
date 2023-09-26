@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedInteger('user_id');
             $table->unsignedInteger('notifier_user_id');
-            $table->unsignedInteger('source_id');
+            $table->unsignedInteger('source_id')->nullable();
             $table->string('source_type',45);
             $table->timestamps();
         });

@@ -1,62 +1,43 @@
-<script>
+<script setup>
+import { watch,onMounted,toRef } from 'vue';
+import { storeToRefs } from 'pinia';
+import KinstaLayout from "../Layouts/KinstaLayout.vue";
 import VirtualList from '../Components/VirtualList.vue';
 import TweetList  from '../Components/TweetList.vue'
-import ShowComponent  from '../Components/ShowComponent.vue'
-import { router } from '@inertiajs/vue3'
+import TweetCreate from "../Components/Tweet/Form/TweetCreateForm.vue";
+import { useCurrentTweetsStore } from '../state/CurrentTweetsStore';
+import { usePendingTweetsStore } from '../state/PendingTweetsStore';
+import emitter from 'tiny-emitter/instance';
+
+defineOptions({ layout: KinstaLayout });
+
+let tweetStore = useCurrentTweetsStore();
+
+const {currentTweets} = storeToRefs(tweetStore);
+
+let pendingTweetStore = usePendingTweetsStore();
+
+const {pendingTweets} = storeToRefs(pendingTweetStore);
 
 
-// router.get('/users', {
-//             name: 'John Doe',
-//             email: 'john.doe@example.com',
-//         })
+onMounted(() => {
 
-export default {
-    layout: KinstaLayout,
-    name: "Timeline",
-    methods: {
-        loadMorePosts() {
-            // this.$inertia.get(this.tweetPagination.next_page_url, {}, {
-            //     preserveState: true,
-            //     preserveScroll: true,
-            //     only: ['tweetPagination'],
-            //     onSuccess: () => {
-            //         //window.history.replaceState({}, this.$page.title, this.initialUrl);
-            //         this.tweets = [...this.tweets, ...this.tweetPagination.data];
-            //         this.tweetPagination.data = Object.assign(this.tweetPagination.data,this.tweets);
-            //     }
-            // })
-        }
-    },
-    mounted(){
-        console.log('mounted');
-    },
-    unmounted(){
-
-    }
-}
-
-
-
-</script>
-<script setup>
-import KinstaLayout from "../Layouts/KinstaLayout.vue";
-
-
-
+});
 </script>
 
 <template>
     <div id="list_detail">
         <div id="list">
             <KeepAlive>
-                <VirtualList :paginationUrl="'/timeline'">
-                    <!-- <template v-slot:header>
-                        <div class="sticky-top" style="height:50px;background-color: white;border-bottom:1px solid gray;max-width: 40rem;">
-                            Tweets Header
+                <VirtualList :paginationUrl="'/timeline'" name="tweets" :vName="'timeline'" :vPendingItems="pendingTweets" :vStore="tweetStore" :vTopItems="[$page.props.auth.user]">
+                    <template v-slot:header>
+                        <div class="sticky-top index-header">
+                            HOME
                         </div>
-                    </template> -->
-                    <template #tweetslot="{tweet, updateItem,updateItemPorperty}" >
-                        <TweetList :tweet="tweet" @updateItemEvent="updateItem" @updateItemPropertyEvent="updateItemPorperty"></TweetList>
+                    </template>
+                    <template #vitemslot="{vitem,vindex, updateItem,updateItemPorperty}" >
+                        <TweetCreate v-if="vindex == 0" :url="'/tweets'"  :user="$page.props.auth.user" :name="'tweet-create-index'"></TweetCreate>
+                        <TweetList  v-if="vindex > 0" :vitem="vitem" :vindex="vindex" @updateItemEvent="updateItem" @updateItemPropertyEvent="updateItemPorperty"></TweetList>
                     </template>
                 </VirtualList>
             </KeepAlive>
@@ -67,5 +48,13 @@ import KinstaLayout from "../Layouts/KinstaLayout.vue";
 
 <style>
 @import "../../css/Timeline/timeline.css";
+
+.index-header .modal-footer{
+    padding-left:25px;
+}
+
+.index-header .modal-content{
+    padding:15px;
+}
 </style>
 

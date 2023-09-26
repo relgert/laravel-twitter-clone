@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 
-export const useVirtualListStore = defineStore('virtualList', {
+export const useVirtualListStore = (name) => defineStore(name, {
     state: () => {
         return {
             data:{
@@ -14,11 +14,12 @@ export const useVirtualListStore = defineStore('virtualList', {
                 // Index of the first list item on DOM
                 startIndex: 0,
                 endIndex: 10,
-                // List of all the items out of which a subset will be rendered on DOM
+
                 items: [],
+                // List of all the items out of which a subset will be rendered on DOM
+                pendingItems:[],
                 // Height of each row
                 heights: [],
-
                 pedingItems: [],
                 // Total height per page
                 // On page 0 , lets say all PAGE_SIZE rows add up to 2000
@@ -39,11 +40,9 @@ export const useVirtualListStore = defineStore('virtualList', {
                 // Current scroll position
                 scrollTop: 0,
                 renderAhead: 10,
-
                 // The id of the currently selected item, by default set to 0
-                selectedIndex: 0
+                selectedIndex: 0,
             }
         }
     }
-
 });

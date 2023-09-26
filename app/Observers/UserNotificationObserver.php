@@ -3,6 +3,8 @@
 namespace App\Observers;
 
 use App\Models\UserNotification;
+use App\Models\User;
+use App\Events\NotificationUpdateEvent;
 
 class UserNotificationObserver
 {
@@ -11,7 +13,9 @@ class UserNotificationObserver
      */
     public function created(UserNotification $notification): void
     {
-        //TweetCreatedEvent::dispatch($tweet);
+        $user = User::find($notification['user_id']);
+        $user->increment('pending_notifications', 1);
+        NotificationUpdateEvent::dispatch($user);
     }
 
     /**

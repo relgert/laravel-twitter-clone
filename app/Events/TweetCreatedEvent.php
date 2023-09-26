@@ -9,8 +9,9 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Tweet;
+use App\Models\User;
 
-class TweetCreatedEvent implements ShouldBroadcast
+class TweetCreatedEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -19,21 +20,6 @@ class TweetCreatedEvent implements ShouldBroadcast
      */
     public function __construct(
         public Tweet $tweet,
+        public User $user
     ) {}
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
-     */
-    public function broadcastOn(): Channel
-    {
-        return new PrivateChannel('main');
-    }
-
-
-    public function broadcastAs(): string
-    {
-        return 'test';
-    }
 }

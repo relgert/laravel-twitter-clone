@@ -17,12 +17,19 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->name();
+        $handle = fake()->userName();
         return [
-            'name' => fake()->name(),
-            'email' => 'example@example.com',
+            'name' => $name,
+            'handle' => $handle,
+            'profile_picture'=> 'https://picsum.photos/seed/'.$name.'/100/100',
+            'profile_background'=> 'https://picsum.photos/seed/'.$handle.'/600/200',
+            'profile_bio'=> $this->faker->sentence(6),
+            'email' => fake()->email(),
             'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'remember_token' => Str::random(10),
+            'pending_notifications' => 0,
         ];
     }
 

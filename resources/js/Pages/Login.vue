@@ -1,6 +1,6 @@
 <script setup>
 import CleanLayout from "../Layouts/CleanLayout.vue";
-import { Head, Link, useForm } from '@inertiajs/inertia-vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
     defineProps({
         message: String,
         errors: Object

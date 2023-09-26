@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use App\Models\UserFollowers;
+use App\Models\UserFollower;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Container\Container;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
@@ -17,6 +19,14 @@ class UserController extends Controller
         return view('user.index', [
             'users' => User::get()
         ]);
+    }
+
+
+    function profile(User $user,Request $request){
+        return Inertia::render('Profile', [
+            'profileUser' => $user
+        ]);
+
     }
 
     public function show(string $id): View{
@@ -70,25 +80,35 @@ class UserController extends Controller
         return redirect('/users/create');
     }
 
-    public function follow_user(Request $request): RedirectResponse{
-
-
-
-
+    public function follow_user(User $user,Request $request){
         $valid = $request->validate([
-            'followed_user_id' => [
+            'id' => [
                 Rule::unique('user_followers')
-                  ->where('followed_user_id', $request->followed_user_id)
+                  ->where('followed_user_id', $user->id)
                   ->where('follower_user_id', Auth::user()->id)
             ],
         ]);
 
-
-        $userFollower = new UserFollowers;
-        $userFollower->followed_user_id = $valid['followed_user_id'];
+        $userFollower = new UserFollower;
+        $userFollower->followed_user_id = $user->id;
         $userFollower->follower_user_id = Auth::user()->id;
-        $userFollower->save();
 
-        return redirect('/');
+        if($userFollower->save()){
+            $follower = User::find(Auth::user()->id);
+            $follower->increment_counter('following_count');
+            $user->increment_counter('followers_count');
+        }
+        return User::find($user->id);
+    }
+
+    public function un_follow_user(User $user,Request $request){
+        $currentFollow = UserFollower::where('followed_user_id', $user->id)->where('follower_user_id', Auth::user()->id);
+        if($currentFollow){
+            $currentFollow->delete();
+            $follower = User::find(Auth::user()->id);
+            $follower->decrement_counter('following_count');
+            $user->decrement_counter('followers_count');
+        }
+        return User::find($user->id);
     }
 }
