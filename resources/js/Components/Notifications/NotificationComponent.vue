@@ -29,11 +29,15 @@ function showTweet(id){
 
 </script>
 <template>
-    <div v-if="notification.source_type == 'favorite'" class="card-body">
+    <div class="card-body">
         <div class="notification-sm" @click.stop="goTo(route('tweet.show',notification.notified_tweet.id))">
             <div class="notification-header" >
                 <div class="notification-icon" >
-                    <i class="fs-9 bi-heart-fill"></i>
+                    <i v-if="notification.source_type == 'favorite'"    class="fs-9 bi-heart-fill"></i>
+                    <i v-if="notification.source_type == 'quote'"       class="fs-9 bi-repeat" style="color:rgb(0, 186, 124)"></i>
+                    <i v-if="notification.source_type == 'retweet'"     class="fs-9 bi-repeat" style="color:rgb(0, 186, 124)"></i>
+                    <i v-if="notification.source_type == 'reply'"     class="fs-9 bi-repeat" style="color:rgb(0, 186, 124)"></i>
+                    <i v-if="notification.source_type == 'follow'"      class="fs-9 bi-person-fill" style="color:rgb(29, 155, 240)"></i>
                 </div>
                 <div class="notification-thumbnail" @click.stop="goTo(route('profile',notification.notifier_user.handle))">
                     <img :src="notification.notifier_user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
@@ -45,57 +49,14 @@ function showTweet(id){
                         <Link @click.stop="goTo(route('profile',notification.notifier_user.handle))">
                             {{ notification.notifier_user.name }}
                         </Link>
-                        Liked your post
+                        <div v-if="notification.source_type == 'favorite'">Liked your post</div>
+                        <div v-if="notification.source_type == 'retweet'">Retweeted your post</div>
+                        <div v-if="notification.source_type == 'quote'">Quoted your post</div>
+                        <div v-if="notification.source_type == 'follow'">Followed you</div>
+                        <div v-if="notification.source_type == 'reply'">Replied your post</div>
                     </div>
-                    <div class="notification-body">
+                    <div class="notification-body" v-if="notification.source_type != 'follow'">
                         {{ notification.notified_tweet.text }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div v-if="notification.source_type == 'retweet'" class="card-body">
-        <div class="notification-sm" @click.stop="goTo(route('tweet.show',notification.notified_tweet.id))">
-            <div class="notification-header" >
-                <div class="notification-icon" >
-                    <i class="fs-9 bi-heart-fill"></i>
-                </div>
-                <div class="notification-thumbnail" @click.stop="goTo(route('profile',notification.notifier_user.handle))">
-                    <img :src="notification.notifier_user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
-                </div>
-            </div>
-            <div>
-                <div class="notification-container" style="padding-left:40px">
-                    <div class="notification-title">
-                        <Link @click.stop="goTo(route('profile',notification.notifier_user.handle))">
-                            {{ notification.notifier_user.name }}
-                        </Link>
-                        Reposted your post
-                    </div>
-                    <div class="notification-body">
-                        {{ notification.notified_tweet.text }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div v-if="notification.source_type == 'follow'" class="card-body">
-        <div class="notification-sm" @click.stop="goTo(route('tweet.show',notification.notified_tweet.id))">
-            <div class="notification-header" >
-                <div class="notification-icon" >
-                    <i class="fs-9 bi-heart-fill"></i>
-                </div>
-                <div class="notification-thumbnail" @click.stop="goTo(route('profile',notification.notifier_user.handle))">
-                    <img :src="notification.notifier_user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
-                </div>
-            </div>
-            <div>
-                <div class="notification-container" style="padding-left:40px">
-                    <div class="notification-title">
-                        <Link @click.stop="goTo(route('profile',notification.notifier_user.handle))">
-                            {{ notification.notifier_user.name }}
-                        </Link>
-                        Followed you
                     </div>
                 </div>
             </div>
@@ -138,6 +99,10 @@ function showTweet(id){
 
 .notification-title{
     font-size: 0.8rem;
+    display: flex;
+}
+.notification-title div{
+    margin-left:5px;
 }
 
 .notification-title a{

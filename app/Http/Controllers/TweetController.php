@@ -28,7 +28,7 @@ class TweetController extends Controller
         ->with(['replies'=>function($query) {
             return $query->limit(1);
         }])
-        ->where('is_reply', null)
+        ->where('type', ['tweet','retweet','quote'])
         ->orderBy('id', 'desc')
         ->paginate(10);
 
@@ -50,7 +50,7 @@ class TweetController extends Controller
             return $query->limit(1);
         }])
         ->where('parent_id',$tweet_id)
-        ->where('is_reply', true)
+        ->where('type', 'reply')
         ->orderBy('id', 'desc')
         ->paginate(10);
 
@@ -65,7 +65,7 @@ class TweetController extends Controller
             return $query->limit(1);
         }])
         ->where('user_id',$user_id)
-        ->where('is_reply', null)
+        ->where('type','!=','reply')
         ->orderBy('id', 'desc')
         ->paginate(10);
 
@@ -95,33 +95,20 @@ class TweetController extends Controller
 
 
     public function store(Request $request){
-
-        $faker = Container::getInstance()->make(Generator::class);
-
+        $valid = $request->validate([
+            'text'=>'required',
+            'file'=>'max:2048'
+        ]);
 
         $newTweet = new Tweet;
         $newTweet->user_id = Auth::id();
-        //$newTweet->text = $faker->sentence(6);
-
-
-
-
-
-        $valid = $request->validate([
-            'text'=>'required',
-            'file'=>'mimes:jpeg,png|max:2048'
-        ]);
-
-
         $newTweet->text = $valid['text'];
 
-
-        $fileName = time().'_'.$valid['file']->getClientOriginalName();
-
-
-        $filePath = $valid['file']->storeAs('uploads',$fileName,'public');
-
-        $newTweet->media = '/storage/' . $filePath;
+        if($valid['file'] != 'null'){
+            $fileName = time().'_'.$valid['file']->getClientOriginalName();
+            $filePath = $valid['file']->storeAs('uploads',$fileName,'public');
+            $newTweet->media = '/storage/' . $filePath;
+        }
 
         $newTweet->save();
 
@@ -131,19 +118,22 @@ class TweetController extends Controller
 
     public function reply(Tweet $tweet,Request $request){
 
-        $faker = Container::getInstance()->make(Generator::class);
-
-
-
         $newTweet = new Tweet;
         $newTweet->user_id = Auth::id();
-        $newTweet->is_reply = true;
+        $newTweet->type = 'reply';
         $newTweet->parent_id = $tweet->id;
         //$newTweet->text = $faker->sentence(6);
 
         $valid = $request->validate([
-            'text'=>'required'
+            'text'=>'required',
+            'file'=>'max:2048'
         ]);
+
+        if($valid['file'] != 'null'){
+            $fileName = time().'_'.$valid['file']->getClientOriginalName();
+            $filePath = $valid['file']->storeAs('uploads',$fileName,'public');
+            $newTweet->media = '/storage/' . $filePath;
+        }
 
         $newTweet->text = $valid['text'];
 
@@ -162,14 +152,14 @@ class TweetController extends Controller
                 Rule::unique('tweets')
                   ->where('parent_id', $tweet->id)
                   ->where('user_id', Auth::id())
-                  ->where('is_retweet', true)
+                  ->where('type','retweet')
             ],
         ]);
 
 
         $newTweet = new Tweet;
         $newTweet->user_id = Auth::id();
-        $newTweet->is_retweet = true;
+        $newTweet->type = 'retweet';
         $newTweet->parent_id = $tweet->id;
         //$newTweet->text = $faker->sentence(6);
 
@@ -187,22 +177,26 @@ class TweetController extends Controller
 
         $newTweet = new Tweet;
         $newTweet->user_id = Auth::id();
-        $newTweet->is_quote = true;
+        $newTweet->type = 'quote';
         $newTweet->parent_id = $tweet->id;
-        //$newTweet->text = $faker->sentence(6);
+
 
         $valid = $request->validate([
-            'text'=>'required'
+            'text'=>'required',
+            'file'=>'max:2048'
         ]);
+
+        if($valid['file'] != 'null'){
+            $fileName = time().'_'.$valid['file']->getClientOriginalName();
+            $filePath = $valid['file']->storeAs('uploads',$fileName,'public');
+            $newTweet->media = '/storage/' . $filePath;
+        }
+
         $newTweet->text = $valid['text'];
-
-
-
 
         $newTweet->save();
 
         $tweet->increment_counter('count_retweets');
-
         $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user')->first();
         return $tweet;
     }
@@ -213,7 +207,7 @@ class TweetController extends Controller
 
         $newTweet = new Tweet;
         $newTweet->user_id = Auth::id();
-        $newTweet->is_retweet = true;
+        $newTweet->type = 'retweet';
         $newTweet->parent_id = $tweet->id;
         //$newTweet->text = $faker->sentence(6);
 

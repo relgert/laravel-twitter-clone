@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
 }
 
 #dropdownUser1 {
-    padding: 10px;
+
     padding-right: 0;
     border-radius: 40px;
 }

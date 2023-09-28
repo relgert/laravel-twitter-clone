@@ -27,7 +27,7 @@ const tweet = computed({
 const modal = useModal();
 
 function emitNewTweet(response){
-    if(response.is_reply){
+    if(response.type == 'reply'){
         return;
     }
     emitter.emit('createdTweets', [response]);

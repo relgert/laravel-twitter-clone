@@ -13,7 +13,7 @@ const props = defineProps({tweet: Object});
 
 const { tweet } = toRefs(props);
 
-const pagintation_url = tweet.value.is_retweet?tweet.value.parent_id:tweet.value.id;
+const pagintation_url = tweet.value.type == 'retweet'?tweet.value.parent_id:tweet.value.id;
 
 let tweetStore = useCurrentTweetsStore();
 tweetStore.currentTweets[tweet.value.id] = tweet.value;

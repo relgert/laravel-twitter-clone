@@ -19,7 +19,7 @@ const props = defineProps({tweetId:Number,tweetParentId:Number,tweetInfo:Object}
 
 const { tweetInfo } = toRefs(props);
 
-const currentTweetId = tweetInfo.value.is_retweet? tweetInfo.value.parent_id:tweetInfo.value.id;
+const currentTweetId = tweetInfo.value.type == 'retweet'? tweetInfo.value.parent_id:tweetInfo.value.id;
 
 
 const tweet = computed({
@@ -63,7 +63,7 @@ function handleClickUndoQuote(){
 }
 
 function emitNewTweet(response){
-    if(response.is_reply){
+    if(response.type == 'reply'){
         return;
     }
     emitter.emit('createdTweets', [response]);
@@ -126,7 +126,7 @@ function showTweet(id){
 
 <template>
     <div class="tweet" @click="showTweet(tweetInfo.id)">
-        <div v-if="tweetInfo.is_retweet" class="tweet-retweeted-by"><i class="fs-7 bi-repeat"></i> {{ tweetInfo.user.name }} reposted</div>
+        <div v-if="tweetInfo.type == 'retweet'" class="tweet-retweeted-by"><i class="fs-7 bi-repeat"></i> {{ tweetInfo.user.name }} reposted</div>
         <div class="tweet-main" style="display: flex;flex-direction: row;">
             <div class="tweet-thumbnail">
                 <img :src="tweet.user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
@@ -145,8 +145,8 @@ function showTweet(id){
                 <div class="tweet-body">
                     {{ tweet.text }}
                 </div>
-                <div v-if="tweet.is_quote" class="tweet-body" style="border-radius: 20px;border:1px solid #ccc;margin-bottom:10px;">
-                    <TweetSmall v-if="tweet.is_quote"  :tweetId="tweet.parent_id" ></TweetSmall>
+                <div v-if="tweet.type == 'quote'" class="tweet-body" style="border-radius: 20px;border:1px solid #ccc;margin-bottom:10px;">
+                    <TweetSmall v-if="tweet.type == 'quote'"  :tweetId="tweet.parent_id" ></TweetSmall>
                 </div>
                 <div  class="tweet-footer" style="font-size:14px;display:flex;justify-content:space-between;width:100%">
                     <span @click.stop="handleClickReply" style="cursor:pointer;" class="blue">

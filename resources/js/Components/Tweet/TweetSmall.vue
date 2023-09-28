@@ -53,6 +53,9 @@ function showTweet(id){
                 <div class="tweet-body">
                     {{ tweet.text }}
                 </div>
+                <div class="tweet-media" v-if="tweet.media">
+                    <img :src="tweet.media" />
+                </div>
             </div>
         </div>
     </div>

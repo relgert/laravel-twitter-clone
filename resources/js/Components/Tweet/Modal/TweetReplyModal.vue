@@ -15,7 +15,7 @@ function handleOnSuccess(data){
 </script>
 
 <template>
-    <TweetReply  :tweet="tweet" @onSuccess="handleOnSuccess" :name="'tweet-reply-modal'"></TweetReply>
+    <TweetReply  :tweet="tweet" @onSuccess="handleOnSuccess" :url="'/tweets/'+tweet.id+'/reply'" :name="'tweet-reply-modal'"></TweetReply>
 </template>
 
 

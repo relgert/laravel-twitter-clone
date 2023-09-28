@@ -15,8 +15,6 @@ const {newTweet} = storeToRefs(newTweetStore);
 const input = ref(null);
 
 
-
-
 function emitNewTweet(response){
     emitter.emit('createdTweets', [response]);
 }
@@ -99,7 +97,7 @@ function onSelectFile(){
                 <i class="bi bi-list-task disabled"></i>
                 <i class="bi bi-calendar2-plus disabled"></i>
                 <i class="bi bi-geo-alt disabled"></i>
-                <input type="file" style="display:none;"  ref="formActionMedia" @input="onSelectFile"/>
+                <input type="file" style="display:none;" accept="image/png, image/jpeg" ref="formActionMedia" @input="onSelectFile"/>
             </div>
             <button type="button" class="btn btn-primary" :disabled="newTweet.text.length == 0"
                 @click="postTweet">Post</button>

@@ -25,7 +25,7 @@ class UserFollowerObserver
         $notification = new UserNotification;
         $notification->user_id = $userFollower->followed_user_id;
         $notification->notifier_user_id = Auth::user()->id;
-        $notification->source_type = 'follower';
+        $notification->source_type = 'follow';
         $notification->save();
 
 

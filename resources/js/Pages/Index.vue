@@ -1,13 +1,12 @@
 <script setup>
-import { watch,onMounted,toRef } from 'vue';
+import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import KinstaLayout from "../Layouts/KinstaLayout.vue";
 import VirtualList from '../Components/VirtualList.vue';
 import TweetList  from '../Components/TweetList.vue'
-import TweetCreate from "../Components/Tweet/Form/TweetCreateForm.vue";
+import TweetListHeader  from '../Components/TweetListHeader.vue'
 import { useCurrentTweetsStore } from '../state/CurrentTweetsStore';
 import { usePendingTweetsStore } from '../state/PendingTweetsStore';
-import emitter from 'tiny-emitter/instance';
 
 defineOptions({ layout: KinstaLayout });
 
@@ -35,9 +34,9 @@ onMounted(() => {
                             HOME
                         </div>
                     </template>
-                    <template #vitemslot="{vitem,vindex, updateItem,updateItemPorperty}" >
-                        <TweetCreate v-if="vindex == 0" :url="'/tweets'"  :user="$page.props.auth.user" :name="'tweet-create-index'"></TweetCreate>
-                        <TweetList  v-if="vindex > 0" :vitem="vitem" :vindex="vindex" @updateItemEvent="updateItem" @updateItemPropertyEvent="updateItemPorperty"></TweetList>
+                    <template #vitemslot="{vitem,vindex, updateItem}" >
+                        <TweetListHeader v-if="vindex == 0" :url="'/tweets'"  :vitem="$page.props.auth.user" :name="'tweet-create-index'" @updateItemEvent="updateItem"></TweetListHeader>
+                        <TweetList  v-if="vindex > 0" :vitem="vitem" :vindex="vindex" @updateItemEvent="updateItem"></TweetList>
                     </template>
                 </VirtualList>
             </KeepAlive>

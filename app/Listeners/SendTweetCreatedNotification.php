@@ -7,6 +7,7 @@ use App\Events\TimeLineUpdateEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
+use App\Models\Tweet;
 use App\Models\UserFollower;
 use App\Models\UserNotification;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,13 +31,16 @@ class SendTweetCreatedNotification implements ShouldQueue
         $tweet = $event->tweet;
         $user = $event->user;
 
-        if($tweet->user_id != $event->user->id && ($tweet->is_retweet || $tweet->is_reply)){
-            $notification = new UserNotification;
-            $notification->user_id = $tweet->user_id;
-            $notification->notifier_user_id = $user->id;
-            $notification->source_id = $tweet->id;
-            $notification->source_type = $tweet->is_retweet?'retweet':'reply';
-            $notification->save();
+        if(!empty($tweet->parent_id) && ($tweet->type != 'tweet')){
+            $parent = Tweet::find($tweet->parent_id);
+            if($parent->user_id != $user->id){
+                $notification = new UserNotification;
+                $notification->user_id = $parent->user_id;
+                $notification->notifier_user_id = $user->id;
+                $notification->source_id = $tweet->parent_id;
+                $notification->source_type = $tweet->type;
+                $notification->save();
+            }
         }
 
         foreach (UserFollower::where('followed_user_id', $tweet->user_id)->lazy() as $follower) {

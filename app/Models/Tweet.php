@@ -29,7 +29,7 @@ class Tweet extends Model
     {
         $retweeted = null;
         if(Auth::user()){
-            $retweeted = Tweet::where('parent_id', $this->id)->where('is_retweet',true)->where('user_id',Auth::user()->id)->first();
+            $retweeted = Tweet::where('parent_id', $this->id)->where('type','retweet')->where('user_id',Auth::user()->id)->first();
         }
         return ($retweeted)?true:false;
     }
@@ -38,7 +38,7 @@ class Tweet extends Model
     {
         $quoted = null;
         if(Auth::user()){
-            $quoted = Tweet::where('parent_id', $this->id)->where('is_quote',true)->where('user_id',Auth::user()->id)->first();
+            $quoted = Tweet::where('parent_id', $this->id)->where('type','quote')->where('user_id',Auth::user()->id)->first();
         }
         return ($quoted)?true:false;
     }
@@ -47,12 +47,12 @@ class Tweet extends Model
 
     public function replies(): HasMany
     {
-        return $this->hasMany(Tweet::class, 'parent_id')->where('is_reply','=', 1);
+        return $this->hasMany(Tweet::class, 'parent_id')->where('type','reply');
     }
 
     public function retweets(): HasMany
     {
-        return $this->hasMany(Tweet::class, 'parent_id')->where('is_retweet','=', 1);
+        return $this->hasMany(Tweet::class, 'parent_id')->where('type','retweet');
     }
 
     public function favorites(): BelongsToMany

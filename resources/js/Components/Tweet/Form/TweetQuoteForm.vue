@@ -1,30 +1,40 @@
 <script setup>
-import { ref, toRefs } from 'vue';
+import { ref, toRefs} from 'vue';
+import { storeToRefs } from 'pinia';
 import emitter from 'tiny-emitter/instance';
+import { useNewTweetStore } from '../../../state/NewTweetStore';
+
+const emit = defineEmits(['onSuccess','onUpdate'])
+
+const props = defineProps({ tweet: Object,url:String,name:{type:String,default:'name'} });
+const { tweet, url } = toRefs(props);
 
 
-const emit = defineEmits(['onSuccess'])
+let newTweetStore = useNewTweetStore(props.name)();
+const {newTweet} = storeToRefs(newTweetStore);
 
-const props = defineProps(['tweet']);
-const { tweet } = toRefs(props);
-
-
-const url = '/tweets/'+tweet.value.id+'/quote';
-
-const tweetText = ref('');
-
-const input = ref(null)
+const input = ref(null);
 
 function emitNewTweet(response){
-    if(response.is_reply){
-        return;
-    }
     emitter.emit('createdTweets', [response]);
 }
 
 function postTweet() {
-    axios
-        .post(url, { text: tweetText.value,parent_id:tweet.value.id })
+    const config = {
+        onUploadProgress: function(progressEvent) {
+        var percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        console.log(percentCompleted)
+        }
+    }
+
+    let data = new FormData()
+    data.append('text', newTweet.value.text)
+    data.append('file', newTweet.value.file)
+
+
+    axios.post(url.value, data,{
+            headers: {'Content-Type': 'multipart/form-data'}
+        })
         .then((response) => {
             emitNewTweet(response.data);
             clearForm();
@@ -33,7 +43,7 @@ function postTweet() {
 }
 
 function clearForm() {
-    tweetText.value = '';
+    newTweetStore.clear();
     updateHeight();
 }
 
@@ -41,6 +51,25 @@ function updateHeight() {
     input.value.style.height = ""
     input.value.style.height = '42px';
     input.value.focus();
+}
+
+const formActionMedia = ref(null);
+let imageData = ref(null);
+function openImage(){
+    formActionMedia.value.click();
+}
+
+function onSelectFile(){
+    const files = formActionMedia.value.files;
+    if (files && files[0]) {
+        const reader = new FileReader
+        reader.onload = e => {
+            newTweet.value.media = e.target.result
+            newTweet.value.file = files[0]
+
+        }
+        reader.readAsDataURL(files[0])
+    }
 }
 </script>
 
@@ -50,9 +79,12 @@ function updateHeight() {
             <img :src="tweet.user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
 
             <div style="width:100%;">
-                <textarea ref="input" v-model="tweetText" placeholder="Add a comment"
+                <textarea ref="input" v-model="newTweet.text" placeholder="What is happening?!"
                     oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' maxlength="280">
                 </textarea>
+                <div v-if="newTweet.media"  style="width:100%;height:100%;" class="media" >
+                    <img :src="newTweet.media" />
+                </div>
             </div>
         </div>
         <div class="tweet-quote-body">
@@ -69,14 +101,15 @@ function updateHeight() {
 
         <div class="tweet-post-footer">
             <div class="tweet-post-actions">
-                <i class="bi bi-image"></i>
-                <i class="bi bi-filetype-gif"></i>
-                <i class="bi bi-emoji-smile"></i>
-                <i class="bi bi-list-task"></i>
-                <i class="bi bi-calendar2-plus"></i>
-                <i class="bi bi-geo-alt"></i>
+                <i class="bi bi-image" ref="image-icon" @click="openImage"></i>
+                <i class="bi bi-filetype-gif disabled"></i>
+                <i class="bi bi-emoji-smile disabled"></i>
+                <i class="bi bi-list-task disabled"></i>
+                <i class="bi bi-calendar2-plus disabled"></i>
+                <i class="bi bi-geo-alt disabled"></i>
+                <input type="file" style="display:none;" accept="image/png, image/jpeg" ref="formActionMedia" @input="onSelectFile"/>
             </div>
-            <button type="button" class="btn btn-primary" :disabled="tweetText.length == 0"
+            <button type="button" class="btn btn-primary" :disabled="newTweet.text.length == 0"
                 @click="postTweet">Post</button>
         </div>
     </div>

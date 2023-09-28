@@ -9,9 +9,5 @@ const notification = reactive(props.vitem);
 
 </script>
 <template>
-    <NotificationComponent v-if="notification.source_type == 'retweet'" :notification="notification"></NotificationComponent>
-    <NotificationComponent v-if="notification.source_type == 'favorite'" :notification="notification"></NotificationComponent>
-    <NotificationComponent v-if="notification.source_type == 'follow'" :notification="notification"></NotificationComponent>
-
-    <NotificationComponent v-if="notification.source_type == 'reply'" :notification="notification"></NotificationComponent>
+    <NotificationComponent :notification="notification"></NotificationComponent>
 </template>

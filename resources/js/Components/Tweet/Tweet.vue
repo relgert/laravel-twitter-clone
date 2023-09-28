@@ -15,7 +15,7 @@ const props = defineProps({tweetId:Number,tweetParentId:Number,tweetInfo:Object}
 
 const { tweetInfo } = toRefs(props);
 
-const currentTweetId = tweetInfo.value.is_retweet? tweetInfo.value.parent_id:tweetInfo.value.id;
+const currentTweetId = tweetInfo.value.type == 'retweet'? tweetInfo.value.parent_id:tweetInfo.value.id;
 
 
 const tweet = computed({
@@ -52,15 +52,15 @@ function showTweet(id){
 
 <template>
     <div class="tweet" @click.stop="showTweet(tweetInfo.id)">
-        <div v-if="tweetInfo.is_retweet" class="tweet-retweeted-by"><i class="fs-7 bi-repeat"></i> {{ tweetInfo.user.name }} reposted</div>
+        <div v-if="tweetInfo.type == 'retweet'" class="tweet-retweeted-by"><i class="fs-7 bi-repeat"></i> {{ tweetInfo.user.name }} reposted</div>
         <div class="tweet-main" style="display: flex;flex-direction: row;">
-            <Link class="tweet-thumbnail" @click.stop="goTo(route('profile',tweet.user.handle))">
+            <a class="tweet-thumbnail" @click.stop="goTo(route('profile',tweet.user.handle))">
                 <img :src="tweet.user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
-            </Link>
+            </a>
             <div class="tweet-container">
                 <div class="tweet-header" >
-                    <Link @click.stop="goTo(route('profile',tweet.user.handle))" style="font-weight: bold;">{{ tweet.user.name }}</Link>
-                    <Link @click.stop="goTo(route('profile',tweet.user.handle))" style="color: rgb(83, 100, 113);">@{{ tweet.user.handle }}</Link>
+                    <a @click.stop="goTo(route('profile',tweet.user.handle))" style="font-weight: bold;">{{ tweet.user.name }}</a>
+                    <a @click.stop="goTo(route('profile',tweet.user.handle))" style="color: rgb(83, 100, 113);">@{{ tweet.user.handle }}</a>
                     <div style="color: rgb(83, 100, 113);">· <timeago :datetime="tweet.created_at" :converter-options="{
         includeSeconds: true,
         addSuffix: false,
@@ -70,12 +70,13 @@ function showTweet(id){
                 </div>
                 <div class="tweet-body">
                     {{ tweet.text }}
+
                 </div>
-                <div class="tweet-media">
+                <div class="tweet-media" v-if="tweet.media">
                     <img :src="tweet.media" />
                 </div>
-                <div v-if="tweet.is_quote" class="tweet-quote-container">
-                    <TweetSmall v-if="tweet.is_quote"  :tweetId="tweet.parent_id" ></TweetSmall>
+                <div v-if="tweet.type == 'quote'" class="tweet-quote-container">
+                    <TweetSmall v-if="tweet.type == 'quote'"  :tweetId="tweet.parent_id" ></TweetSmall>
                 </div>
                 <TweetFooter :tweetId="tweet.id"></TweetFooter>
             </div>
@@ -146,6 +147,7 @@ function showTweet(id){
     border-radius: 20px;
     border:1px solid #ccc;
     margin-bottom:10px;
+    margin-top:5px;
 }
 
 .tweet-quote-container:hover{
@@ -209,8 +211,10 @@ function showTweet(id){
 }
 
 .tweet-media{
-    width:100%;
-    padding-right: 10px;
+    width: 100%;
+    padding-right: 5px;
+    margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .tweet-media img{

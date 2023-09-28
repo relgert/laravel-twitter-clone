@@ -17,9 +17,7 @@ return new class extends Migration
             $table->unsignedInteger('user_id');
             $table->string('text')->nullable();
             $table->string('media')->nullable();
-            $table->boolean('is_reply')->nullable();
-            $table->boolean('is_retweet')->nullable();
-            $table->boolean('is_quote')->nullable();
+            $table->string('type')->default('tweet');
             $table->integer('count_replies')->default(0);
             $table->integer('count_favorites')->default(0);
             $table->integer('count_retweets')->default(0);
