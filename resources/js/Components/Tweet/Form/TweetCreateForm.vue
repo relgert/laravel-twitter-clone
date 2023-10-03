@@ -1,5 +1,5 @@
 <script setup>
-import { ref, toRefs} from 'vue';
+import { onMounted, ref, toRefs} from 'vue';
 import { storeToRefs } from 'pinia';
 import emitter from 'tiny-emitter/instance';
 import { useNewTweetStore } from '../../../state/NewTweetStore';
@@ -71,6 +71,19 @@ function onSelectFile(){
         reader.readAsDataURL(files[0])
     }
 }
+
+function updateTextAreaHeight(){
+    input.value.style.height = ""
+    input.value.style.height = input.value.scrollHeight + 'px';
+}
+
+
+onMounted(() => {
+    updateTextAreaHeight();
+    if(newTweet.value.text.length > 0){
+        input.value.focus();
+    }
+});
 </script>
 
 <template>
@@ -79,7 +92,7 @@ function onSelectFile(){
             <img :src="user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
             <div style="width:100%;">
                 <textarea ref="input" v-model="newTweet.text" placeholder="What is happening?!"
-                    oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' maxlength="280">
+                    @input="updateTextAreaHeight" maxlength="280">
                 </textarea>
                 <div v-if="newTweet.media"  style="width:100%;height:100%;" class="media" >
                     <img :src="newTweet.media" />

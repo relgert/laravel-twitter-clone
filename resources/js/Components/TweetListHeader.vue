@@ -4,8 +4,7 @@
     import { computed, watch, ref, onMounted, toRef} from 'vue';
 
     const emit = defineEmits(['updateItemEvent'])
-    const props = defineProps({vitem:Object,vindex:Number});
-
+    const props = defineProps({user:Object,vindex:Number,url:String,name:String});
 
     const vitemref = ref(null);
 
@@ -28,6 +27,6 @@
 
 <template>
     <div ref="vitemref" >
-        <TweetCreate :tweetInfo="vitem"></TweetCreate>
+        <TweetCreate :user="user" :url="url" :name="name"></TweetCreate>
     </div>
 </template>

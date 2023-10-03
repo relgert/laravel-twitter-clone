@@ -35,7 +35,7 @@ onMounted(() => {
                         </div>
                     </template>
                     <template #vitemslot="{vitem,vindex, updateItem}" >
-                        <TweetListHeader v-if="vindex == 0" :url="'/tweets'"  :vitem="$page.props.auth.user" :name="'tweet-create-index'" @updateItemEvent="updateItem"></TweetListHeader>
+                        <TweetListHeader v-if="vindex == 0" :url="'/tweets'" :vindex="vindex"  :name="'tweet-create-index'" :user="$page.props.auth.user"  @updateItemEvent="updateItem"></TweetListHeader>
                         <TweetList  v-if="vindex > 0" :vitem="vitem" :vindex="vindex" @updateItemEvent="updateItem"></TweetList>
                     </template>
                 </VirtualList>

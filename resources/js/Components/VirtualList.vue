@@ -560,8 +560,7 @@ export default {
                 </div>
                 <div id="viewport" ref="viewport" :style="viewportStyle" class="vlist">
                     <div id="spacer" ref="spacer" :style="spacerStyle">
-                        <div class="vlist-item fade-in-tweet"
-                            v-for="vitem in visibleItems" :key="vitem.id+'-'+vitem.index" :ref="vitem.id+'-'+vitem.index">
+                        <div class="vlist-item fade-in-tweet" v-for="vitem in visibleItems" :key="vitem.id+'-'+vitem.index" :ref="vitem.id+'-'+vitem.index">
                             <slot name="vitemslot" v-bind:vitem="vitem.data" v-bind:vindex="vitem.index" :updateItem="handleUpdateItem" :updateItemPorperty="handleUpdateItemProperty"></slot>
                         </div>
                     </div>
