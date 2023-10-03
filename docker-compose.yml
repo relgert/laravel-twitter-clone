@@ -73,9 +73,9 @@ services:
         - "3000:3000"
     working_dir: /var/www
     tty: true
+    command: npm run dev
     volumes:
         - .:/var/www
-    command: "npm run dev"
 
 volumes:
   dbdata:
