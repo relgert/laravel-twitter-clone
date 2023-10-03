@@ -28,7 +28,7 @@ class TweetController extends Controller
         ->with(['replies'=>function($query) {
             return $query->limit(1);
         }])
-        ->where('type', ['tweet','retweet','quote'])
+        ->where('type','!=','reply')
         ->orderBy('id', 'desc')
         ->paginate(10);
 
