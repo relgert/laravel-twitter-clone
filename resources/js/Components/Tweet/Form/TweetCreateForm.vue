@@ -74,7 +74,12 @@ function onSelectFile(){
 
 function updateTextAreaHeight(){
     input.value.style.height = ""
-    input.value.style.height = input.value.scrollHeight + 'px';
+    if(newTweet.value.text.length > 0){
+        input.value.style.height = input.value.scrollHeight + 'px';
+    }else{
+        input.value.style.height = '42px';
+    }
+
 }
 
 

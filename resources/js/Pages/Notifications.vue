@@ -1,6 +1,6 @@
 <script setup>
 import KinstaLayout from "../Layouts/KinstaLayout.vue";
-import VirtualList from '../Components/VirtualList.vue';
+import VirtualList from '../Components/VirtualList/VirtualList.vue';
 import NotificationList  from '../Components/Notifications/NotificationList.vue'
 
 defineOptions({ layout: KinstaLayout });

@@ -1,14 +1,10 @@
 <script setup>
-import { onMounted,onBeforeUnmount,ref } from 'vue';
-import { storeToRefs } from 'pinia';
-import { router} from '@inertiajs/vue3';
-import { toRefs, reactive ,toRef, computed} from 'vue';
-import useModal from "../../state/Modal";
-import TweetReplyModal from './Modal/TweetReplyModal.vue';
-import TweetQuoteModal from './Modal/TweetQuoteModal.vue';
+import { router, Link} from '@inertiajs/vue3';
+import { toRefs,  computed} from 'vue';
 import TweetSmall from './TweetSmall.vue';
+import TweetFooter from './TweetFooter.vue';
 import { useCurrentTweetsStore } from '../../state/CurrentTweetsStore';
-import emitter from 'tiny-emitter/instance';
+
 
 let tweetStore = useCurrentTweetsStore();
 
@@ -28,87 +24,17 @@ const tweet = computed({
 })
 
 
-//const tweet = reactive(props.tweet);
-
-const modal = useModal();
-
-function handleClickReply() {
-    modal.open(TweetReplyModal,tweet.value, {
-        close:{
-                label: "Close",
-                callback: (dataFromView) => {
-                    modal.close();
-                },
-            },
-    });
-}
-
-function handleClickQuote(){
-    modal.open(TweetQuoteModal,tweet.value, {
-        close:{
-                label: "Close",
-                callback: (dataFromView) => {
-                    modal.close();
-                },
-            },
-    });
-}
-
-function handleClickUndoRetweet(){
-
-}
-
-function handleClickUndoQuote(){
-
-}
-
-function emitNewTweet(response){
-    if(response.type == 'reply'){
-        return;
-    }
-    emitter.emit('createdTweets', [response]);
-}
 
 
-const url = '/tweets/'+tweet.value.id+'/retweet';
 
-function handleClickRetweet() {
-    axios
-        .post(url, { parent_id:tweet.value.id })
-        .then((response) => {
-            emitNewTweet(response.data);
-        })
-}
-
-
-onMounted(() => {
-    window.Echo.private('tweet_update.'+ tweet.value.id)
-    .listen('.tweet_counters', (e) => {
-        tweet.value.count_replies = e.tweet.count_replies;
-        tweet.value.count_retweets = e.tweet.count_retweets;
-        tweet.value.count_favorites = e.tweet.count_favorites;
-    });
-});
-
-onBeforeUnmount(() => {
-    window.Echo.private('tweet_update.'+ tweet.value.id).stopListening('.tweet_counters')
-});
-
-function favoriteTweet() {
-    let url = '/favorite_tweet';
-    if(tweet.value.liked_by_user){
-        url = '/unfavorite_tweet';
-    }
-    axios.post(url, {
-        tweet_id: tweet.value.id,
+function goTo(url){
+    router.visit(url, {
+        method: 'get',
+        data: {},
+        replace: false,
+        preserveState: false,
+        preserveScroll: false,
     })
-        .then((response) => {
-            tweet.value = response.data;
-        })
-        .catch((error) => {
-
-        });
-
 }
 
 
@@ -117,92 +43,69 @@ function showTweet(id){
         method: 'get',
         data: {},
         replace: false,
-        preserveState: true,
-        preserveScroll: true,
+        preserveState: false,
+        preserveScroll: false,
     })
 }
 
 </script>
 
 <template>
-    <div class="tweet" @click="showTweet(tweetInfo.id)">
+    <div class="tweet-show" >
         <div v-if="tweetInfo.type == 'retweet'" class="tweet-retweeted-by"><i class="fs-7 bi-repeat"></i> {{ tweetInfo.user.name }} reposted</div>
-        <div class="tweet-main" style="display: flex;flex-direction: row;">
-            <div class="tweet-thumbnail">
-                <img :src="tweet.user.profile_picture" alt="hugenerd" width="30" height="30" class="rounded-circle">
-            </div>
+        <div class="tweet-main">
+
             <div class="tweet-container">
-                <div class="tweet-header">
-                    <div style="font-weight: bold;">{{ tweet.user.name }}</div>
-                    <div style="color: rgb(83, 100, 113);">@{{ tweet.user.handle }}</div>
-                    <div style="color: rgb(83, 100, 113);">· <timeago :datetime="tweet.created_at" :converter-options="{
-        includeSeconds: true,
-        addSuffix: false,
-        useStrict: false,
-        }"
-        auto-update/></div>
+                <div class="tweet-header" >
+                    <a class="tweet-thumbnail" @click.stop="goTo(route('profile',tweet.user.handle))">
+                        <img :src="tweet.user.profile_picture" alt="hugenerd" width="40" height="40" class="rounded-circle">
+                    </a>
+                    <div class="tweet-profile-name">
+                        <a @click.stop="goTo(route('profile',tweet.user.handle))" style="font-weight: bold;">{{ tweet.user.name }}</a>
+                        <a @click.stop="goTo(route('profile',tweet.user.handle))" style="color: rgb(83, 100, 113);">@{{ tweet.user.handle }}</a>
+                    </div>
                 </div>
                 <div class="tweet-body">
                     {{ tweet.text }}
+                    <div class="tweet-media" v-if="tweet.media">
+                        <img :src="tweet.media" />
+                    </div>
                 </div>
-                <div v-if="tweet.type == 'quote'" class="tweet-body" style="border-radius: 20px;border:1px solid #ccc;margin-bottom:10px;">
+
+                <div v-if="tweet.type == 'quote'" class="tweet-quote-container">
                     <TweetSmall v-if="tweet.type == 'quote'"  :tweetId="tweet.parent_id" ></TweetSmall>
                 </div>
-                <div  class="tweet-footer" style="font-size:14px;display:flex;justify-content:space-between;width:100%">
-                    <span @click.stop="handleClickReply" style="cursor:pointer;" class="blue">
-                        <i class="fs-7 bi-chat"  ></i>
-                        {{ tweet.count_replies }}
-                    </span>
-                    <span @click.stop="" style="cursor:pointer;" class="green" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fs-7 bi-repeat"></i>
-                        {{ tweet.count_retweets }}
-                        <ul class="dropdown-menu dropdown-menu text-small shadow" aria-labelledby="dropdownUser1">
-                            <li v-if="!tweet.retweeted_by_user"><a class="dropdown-item" @click.stop="handleClickRetweet">Retweet</a></li>
-                            <li v-if="tweet.retweeted_by_user"><a class="dropdown-item" @click.stop="handleClickUndoRetweet">Undo Retweet</a></li>
-                            <li><a class="dropdown-item" @click.stop="handleClickQuote">Quote</a></li>
 
-                        </ul>
-                    </span>
-                    <span @click.stop="favoriteTweet" style="cursor:pointer;" class="red">
-                        <i class="fs-9 bi-heart"  v-if="!tweet.liked_by_user"></i>
-                        <i class="fs-9 bi-heart-fill" style="color:#F91880;" v-if="tweet.liked_by_user"></i>
-                        {{ tweet.count_favorites }}
-                    </span>
-
-                    <span @click.stop=""  style="cursor:pointer;" class="blue">
-                        <i class="fs-7 bi-graph-up"></i>
-                    </span>
-                    <span @click.stop="" style="cursor:pointer;" class="blue">
-                        <i class="bi bi-share"></i>
-                    </span>
-
-                </div>
             </div>
+            <div style="color: rgb(83, 100, 113);">
+                <timeago :datetime="tweet.created_at" :converter-options="{includeSeconds: true,addSuffix: false,useStrict: false,}" auto-update/>
+            </div>
+            <TweetFooter :tweetId="tweet.id"></TweetFooter>
         </div>
     </div>
 </template>
 
 <style>
 
-.tweet{
+.tweet-show{
     padding:10px;
     padding-bottom:0px;
     display: flex;
-    cursor:pointer;
     flex-direction: column;
+    cursor:default;
 }
 
 
-.tweet:hover{
+.tweet-show:hover{
     background-color:#F7F9F9;
 }
 
-.tweet-main{
+.tweet-show .tweet-main{
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
 }
 
-.tweet-retweeted-by{
+.tweet-show .tweet-retweeted-by{
     font-size: 11px;
     height: 10px;
     margin: 0;
@@ -214,23 +117,61 @@ function showTweet(id){
     color:gray;
 }
 
-.tweet-container{
+.tweet-show .tweet-thumbnail{
+    height: 40px;
+    cursor: pointer;
+}
+
+.tweet-show .tweet-container{
     display: flex;
     flex-direction: column;
-    padding:0px 10px;
+    padding:0px 0px;
     width:100%;
 }
 
-.tweet-header{
+.tweet-show .tweet-header{
     display: flex;
-    font-size:0.7rem;
+    flex-direction: row;
 }
 
-.tweet-body{
+.tweet-show .tweet-profile-name a{
+    display: flex;
+    flex-direction: column;
+    font-size:0.8rem;
+    cursor: pointer;
+}
+
+.tweet-show .tweet-profile-name a:hover{
+    text-decoration: underline;
+}
+
+.tweet-show .tweet-body{
+    font-size:0.9rem;
+    padding:15px 0;
+    color:rgba(15,20,25,1.00);
+    white-space: pre-wrap;
+}
+
+.tweet-quote-container{
     font-size:0.8rem;
     padding:5px 0;
     color:rgba(15,20,25,1.00);
     white-space: pre-wrap;
+    border-radius: 20px;
+    border:1px solid #ccc;
+    margin-bottom:10px;
+    margin-top:5px;
+}
+
+.tweet-quote-container:hover{
+    background-color: #ececec;
+}
+
+.tweet-show .tweet-footer{
+    border-top:1px solid #ececec;
+    border-bottom:1px solid #ececec;
+    padding:3px 0;
+    margin-top:5px;
 }
 
 .tweet-footer{
@@ -274,6 +215,32 @@ function showTweet(id){
 
 .tweet-header div{
     padding-right:5px;
+}
+
+.tweet-header a{
+    padding-right:5px;
+}
+
+
+.tweet a{
+    text-decoration: none;
+    color:inherit;
+}
+.tweet a:hover{
+    text-decoration: underline;
+}
+
+.tweet-media{
+    width: 100%;
+    padding-right: 5px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.tweet-media img{
+    width:100%;
+    border-radius: 10px;
+    max-height: 900px;
 }
 
 </style>

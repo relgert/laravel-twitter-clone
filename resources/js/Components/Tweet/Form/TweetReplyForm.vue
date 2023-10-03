@@ -16,9 +16,6 @@ const {newTweet} = storeToRefs(newTweetStore);
 const input = ref(null);
 
 function emitNewTweet(response){
-    if(response.type == 'reply'){
-        return;
-    }
     emitter.emit('createdTweets', [response]);
 }
 

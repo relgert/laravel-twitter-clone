@@ -2,8 +2,9 @@
 import { router} from '@inertiajs/vue3';
 import { toRefs } from 'vue';
 import KinstaLayout from "../Layouts/KinstaLayout.vue";
-import VirtualList from '../Components/VirtualList.vue';
-import TweetList  from '../Components/TweetList.vue';
+import VirtualList from '../Components/VirtualList/VirtualList.vue';
+import VirtualListHeaderShow  from '../Components/VirtualList/VirtualListHeaderShow.vue';
+import VitualListItemTweet  from '../Components/VirtualList/VitualListItemTweet.vue';
 import Tweet from '../Components/Tweet/Tweet.vue';
 import { useCurrentTweetsStore } from '../state/CurrentTweetsStore';
 
@@ -33,6 +34,13 @@ function handleBack(){
         })
     }
 }
+
+function vListIncludeConditions(vListItem){
+    if(vListItem.parent_id == tweet.value.id){
+        return true;
+    }
+    return false;
+}
 </script>
 
 <template>
@@ -40,7 +48,7 @@ function handleBack(){
     <div id="list_detail">
         <div id="list">
             <KeepAlive>
-                <VirtualList :paginationUrl="'/tweets/'+pagintation_url+'/replies'" name="tweets" :vAlwaysUpdate="true"  :vStore="tweetStore" :vTopItems="[tweet]">
+                <VirtualList :paginationUrl="'/tweets/'+pagintation_url+'/replies'" name="tweets" :vAlwaysUpdate="true"  :vStore="tweetStore" :vTopItems="[tweet]"  :vUpdateConditions="vListIncludeConditions">
                     <template v-slot:header>
                         <div class="sticky-top index-header">
                             <a class="header-back-button"  @click.stop="handleBack">
@@ -50,8 +58,8 @@ function handleBack(){
                         </div>
                     </template>
                     <template #vitemslot="{vitem,vindex, updateItem,updateItemPorperty}" >
-                        <Tweet v-if="vindex == 0" :tweetInfo="tweet" ></Tweet>
-                        <TweetList v-if="vindex > 0" :vitem="vitem" :vindex="vindex" @updateItemEvent="updateItem" @updateItemPropertyEvent="updateItemPorperty"></TweetList>
+                        <VirtualListHeaderShow v-if="vindex == 0" :url="'/tweets/'+tweet.id+'/reply'" :vindex="vindex" :tweet="tweet"  :name="'tweet-create-index'" :user="$page.props.auth.user"  @updateItemEvent="updateItem"></VirtualListHeaderShow>
+                        <VitualListItemTweet  v-if="vindex > 0" :vitem="vitem" :vindex="vindex" @updateItemEvent="updateItem"></VitualListItemTweet>
                     </template>
                 </VirtualList>
             </KeepAlive>
