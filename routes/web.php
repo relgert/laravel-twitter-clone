@@ -32,16 +32,10 @@ Route::get('/login', function () {
     return Inertia::render('Login');
 })->name('login')->middleware('guest');
 
-Route::get('/tweet/{tweet:id}', [TweetController::class, 'show'])->name('tweet.show');
-
 
 
 Route::post('/authenticate', [LoginController::class, 'authenticate'])->name('authenticate');
-//
 
-Route::view('/home','welcome')->name('home2');
-//Route::view('login','login')->name('login')->middleware('guest');
-//Route::view('dashboard','dashboard');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [TweetController::class, 'index'])->name('home');
@@ -71,6 +65,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/tweets/{tweet:id}/replies', [TweetController::class, 'replies'])->name('tweet.replies');
     Route::get('/user/{user_id}/tweets', [TweetController::class, 'user_tweets'])->name('user.tweets');
+
+    Route::get('/tweet/{tweet:id}', [TweetController::class, 'show'])->name('tweet.show');
 
 
     Route::post('/tweets/{tweet:id}/reply', [TweetController::class, 'reply'])->name('tweet.reply');
