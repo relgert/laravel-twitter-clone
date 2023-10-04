@@ -36,7 +36,7 @@ function handleBack(){
 }
 
 function vListIncludeConditions(vListItem){
-    if(vListItem.parent_id == tweet.value.id){
+    if(vListItem.type == 'reply' && vListItem.parent_id == tweet.value.id){
         return true;
     }
     return false;
