@@ -11,11 +11,11 @@ use App\Models\User;
 class UserTest extends TestCase
 {
 
-    //use RefreshDatabase;
-    /**
-     * A basic feature test example.
-     */
-    public function test_example(): void
+    use RefreshDatabase;
+
+
+
+    public function test_user_create_and_delete(): void
     {
         $this->seed();
         $user = User::first();
