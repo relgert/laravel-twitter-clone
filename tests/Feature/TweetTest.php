@@ -41,9 +41,65 @@ class TweetTest extends TestCase
             'file' => UploadedFile::fake()->image('avatar.png')
         ]);
 
+        $response->assertStatus(200);
         Storage::disk('public')->assertExists($response->getData()->path);
         Storage::disk('public')->assertMissing('missing.png');
     }
+
+    public function test_retweet_tweet(): void
+    {
+
+        $user1 = User::factory()->create();
+        $tweet = Tweet::factory()->create(['user_id'=>$user1->id]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->json('POST', '/tweets/'.$tweet->id.'/retweet');
+        $response->assertStatus(200);
+    }
+
+    public function test_reply_tweet_with__image(): void
+    {
+        Storage::fake('public');
+
+        $user1 = User::factory()->create();
+        $tweet = Tweet::factory()->create(['user_id'=>$user1->id]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->json('POST', '/tweets/'.$tweet->id.'/reply', [
+            'text'=>'see',
+            'file' => UploadedFile::fake()->image('avatar.png')
+        ]);
+
+        $response->assertStatus(200);
+        Storage::disk('public')->assertExists($response->getData()->path);
+        Storage::disk('public')->assertMissing('missing.png');
+    }
+
+    public function test_quote_tweet_with__image(): void
+    {
+        Storage::fake('public');
+
+        $user1 = User::factory()->create();
+        $tweet = Tweet::factory()->create(['user_id'=>$user1->id]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->json('POST', '/tweets/'.$tweet->id.'/quote', [
+            'text'=>'see',
+            'file' => UploadedFile::fake()->image('avatar.png')
+        ]);
+
+        $response->assertStatus(200);
+        Storage::disk('public')->assertExists($response->getData()->path);
+        Storage::disk('public')->assertMissing('missing.png');
+    }
+
+
 
     public function test_tweet_timeline():void
     {
@@ -58,5 +114,91 @@ class TweetTest extends TestCase
 
         $response = $this->json('GET','/timeline?page=2');
         $response->assertJsonFragment(['current_page' => 2]);
+    }
+
+    public function test_user_can_favorite_tweet():void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $tweet = Tweet::factory()->create();
+
+        $response = $this->json('POST', '/favorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertJsonFragment(['liked_by_user' => true]);
+    }
+
+    public function test_user_cant_favorite_twice():void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $tweet = Tweet::factory()->create();
+
+        $response = $this->json('POST', '/favorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertJsonFragment(['liked_by_user' => true]);
+
+        $response = $this->json('POST', '/favorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertStatus(422);
+
+        $response->assertJsonFragment(['message' => 'The tweet id has already been taken.']);
+    }
+
+    public function test_user_can_unfavorite():void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $tweet = Tweet::factory()->create();
+
+        $response = $this->json('POST', '/favorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertJsonFragment(['liked_by_user' => true]);
+
+
+        $response = $this->json('POST', '/unfavorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertJsonFragment(['liked_by_user' => false]);
+    }
+
+    public function test_user_cant_unfavorite_twice():void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $tweet = Tweet::factory()->create();
+
+        $response = $this->json('POST', '/favorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertJsonFragment(['liked_by_user' => true]);
+
+
+        $response = $this->json('POST', '/unfavorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertJsonFragment(['liked_by_user' => false]);
+
+        $response = $this->json('POST', '/unfavorite_tweet', [
+            'tweet_id'=>$tweet->id,
+        ]);
+
+        $response->assertStatus(422);
+
+        $response->assertJsonFragment(['message' => 'The tweet is not favorited by user.']);
     }
 }

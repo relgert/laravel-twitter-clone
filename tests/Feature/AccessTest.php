@@ -19,7 +19,7 @@ class AccessTest extends TestCase
     }
 
 
-    public function test_login(){
+    public function test_user_can_login_with_correct_credentials(){
         $user = User::factory()->create([
             'password' => bcrypt($password = 'secret-password'),
         ]);
@@ -33,8 +33,22 @@ class AccessTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_guest(){
+    public function test_user_cant_login_with_incorrect_credentials(){
+        $user = User::factory()->create([
+            'password' => bcrypt($password = 'secret-password'),
+        ]);
+
+        $response = $this->post('/authenticate', [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ]);
+
+        $this->assertGuest();
+    }
+
+    public function test_user_cant_access_protected_urls(){
         $response = $this->get('/');
         $this->assertGuest();
+        $response->assertRedirect('/login');
     }
 }

@@ -32,7 +32,6 @@ class TweetController extends Controller
         ->orderBy('id', 'desc')
         ->paginate(10);
 
-
         if($request->wantsJson()){
             return $tweets->toArray();
         }else{
@@ -82,12 +81,12 @@ class TweetController extends Controller
 
     public function show($tweet_id): Response
     {
-
         $tweet = Tweet::with('parent','parent.user','user')
         ->with(['replies'=>function($query) {
             return $query->limit(10);
         }])
         ->where('id', $tweet_id)->first();
+
         return Inertia::render('Show', [
             'tweet' => $tweet
         ]);
@@ -117,12 +116,10 @@ class TweetController extends Controller
     }
 
     public function reply(Tweet $tweet,Request $request){
-
         $newTweet = new Tweet;
         $newTweet->user_id = Auth::id();
         $newTweet->type = 'reply';
         $newTweet->parent_id = $tweet->id;
-        //$newTweet->text = $faker->sentence(6);
 
         $valid = $request->validate([
             'text'=>'required',
@@ -132,7 +129,7 @@ class TweetController extends Controller
         if($valid['file'] != 'null'){
             $fileName = time().'_'.$valid['file']->getClientOriginalName();
             $filePath = $valid['file']->storeAs('uploads',$fileName,'public');
-            $newTweet->media = '/storage/' . $filePath;
+            $newTweet->path =  $filePath;
         }
 
         $newTweet->text = $valid['text'];
@@ -146,7 +143,6 @@ class TweetController extends Controller
     }
 
     public function retweet(Tweet $tweet,Request $request){
-
         $valid = $request->validate([
             'parent_id' => [
                 Rule::unique('tweets')
@@ -156,13 +152,10 @@ class TweetController extends Controller
             ],
         ]);
 
-
         $newTweet = new Tweet;
         $newTweet->user_id = Auth::id();
         $newTweet->type = 'retweet';
         $newTweet->parent_id = $tweet->id;
-        //$newTweet->text = $faker->sentence(6);
-
 
         $newTweet->save();
 
@@ -189,7 +182,7 @@ class TweetController extends Controller
         if($valid['file'] != 'null'){
             $fileName = time().'_'.$valid['file']->getClientOriginalName();
             $filePath = $valid['file']->storeAs('uploads',$fileName,'public');
-            $newTweet->media = '/storage/' . $filePath;
+            $newTweet->path = $filePath;
         }
 
         $newTweet->text = $valid['text'];
@@ -197,32 +190,6 @@ class TweetController extends Controller
         $newTweet->save();
 
         $tweet->increment_counter('count_retweets');
-        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user')->first();
-        return $tweet;
-    }
-
-    public function unquote(Tweet $tweet,Request $request){
-
-        $faker = Container::getInstance()->make(Generator::class);
-
-        $newTweet = new Tweet;
-        $newTweet->user_id = Auth::id();
-        $newTweet->type = 'retweet';
-        $newTweet->parent_id = $tweet->id;
-        //$newTweet->text = $faker->sentence(6);
-
-        if(!empty($request->input('text'))){
-            $valid = $request->validate([
-                'text'=>'required'
-            ]);
-            $newTweet->text = $valid['text'];
-        }
-
-
-        $newTweet->save();
-
-        $tweet->increment_counter('count_retweets');
-
         $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user')->first();
         return $tweet;
     }
@@ -259,15 +226,17 @@ class TweetController extends Controller
         ]);
 
         $tweetFavorite = TweetFavorite::where('tweet_id',$valid['tweet_id'])->where('user_id',Auth::user()->id)->first();
-        if($tweetFavorite){
-            $tweetFavorite->delete();
-            $tweet = Tweet::where('id',$valid['tweet_id'])->first();
-            $tweet->decrement_counter('count_favorites');
+
+        if(!$tweetFavorite){
+            return response()->json([
+                'message' => "The tweet is not favorited by user."
+            ], 422);
         }
 
+        $tweetFavorite->delete();
+        $tweet = Tweet::where('id',$valid['tweet_id'])->first();
+        $tweet->decrement_counter('count_favorites');
         $tweet = Tweet::where('id',$valid['tweet_id'])->with('parent','parent.user','user')->first();
-
-
         if($request->wantsJson()){
             return $tweet->toArray();
         }
