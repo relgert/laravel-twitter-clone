@@ -23,7 +23,7 @@ class TweetController extends Controller
 
 
     public function timeline(Request $request){
-        usleep(150000);
+        //usleep(150000);
         $tweets = Tweet::with('parent','parent.user','user')
         ->with(['replies'=>function($query) {
             return $query->limit(1);
@@ -94,7 +94,7 @@ class TweetController extends Controller
     }
 
 
-    public function store(Request $request){
+    public function store(Request $request) {
         $valid = $request->validate([
             'text'=>'required',
             'file'=>'max:2048'
@@ -106,8 +106,8 @@ class TweetController extends Controller
 
         if($valid['file'] != 'null'){
             $fileName = time().'_'.$valid['file']->getClientOriginalName();
-            $filePath = $valid['file']->storeAs('uploads',$fileName,'public');
-            $newTweet->media = '/storage/' . $filePath;
+            $filePath = $valid['file']->store('uploads','public');
+            $newTweet->path = $filePath;
         }
 
         $newTweet->save();

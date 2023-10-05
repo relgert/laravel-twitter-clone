@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedInteger('parent_id')->nullable();
             $table->unsignedInteger('user_id');
             $table->string('text')->nullable();
-            $table->string('media')->nullable();
+            $table->string('path')->nullable();
             $table->string('type')->default('tweet');
             $table->integer('count_replies')->default(0);
             $table->integer('count_favorites')->default(0);

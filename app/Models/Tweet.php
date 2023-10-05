@@ -14,7 +14,16 @@ use Auth;
 class Tweet extends Model
 {
     use HasFactory;
-    protected $appends= ['liked_by_user','retweeted_by_user','quoted_by_user'];
+    protected $appends= ['liked_by_user','retweeted_by_user','quoted_by_user','media'];
+
+    public function getMediaAttribute()
+    {
+        $url = null;
+        if($this->path){
+            $url = '/storage/'.$this->path;
+        }
+        return $url;
+    }
 
     public function getLikedByUserAttribute()
     {
