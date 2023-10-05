@@ -42,4 +42,4 @@ jobs:
     - name: Migration
       run: php artisan migrate:fresh --seed
     - name: Execute tests (Unit and Feature tests) via PHPUnit
-      run: vendor/bin/phpunit
+      run: php artisan test
