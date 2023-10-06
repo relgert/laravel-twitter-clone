@@ -10,9 +10,13 @@ class DatabaseSeeder extends Seeder
 {
     public function run()
     {
+        User::factory(1)->create([
+            'email'=>'vince.terry@gmail.com',
+            'password'=>bcrypt('password')
+        ]);
 
         User::factory(10)->create();
 
-        Tweet::factory(15)->create();
+        Tweet::factory(150)->create();
     }
 }
