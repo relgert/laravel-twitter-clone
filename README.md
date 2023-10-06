@@ -1,18 +1,65 @@
-# Laravel Twitter Clone
+# Laravel-Vue.js Twitter Clone
 
+
+## Live demo
+
+http://twitter.giovanni-elgert.info
+
+        mail: vince.terry@gmail.com  
+        password: password
 
 
 ## Overview
 
-This project is a Twitter clone built using the Laravel framework. It aims to replicate core features of Twitter, providing users with the ability to post tweets, follow other users, and engage in conversations.
+I embarked on creating a Twitter clone using Laravel and Vue.js, driven by its familiarity and robust feature set. This project provided a real-world application to practice essential web development concepts, while also allowing room for creative innovation. The result is a showcase of my proficiency in building user-centric web applications.
+
+## Why a Twitter clone?
+
+#### Familiarity and User-Centered Design:
+
+Twitter is a globally recognized platform, ensuring that users are already familiar with its functionality. By replicating its core features, I aimed to leverage this familiarity to create an intuitive and user-friendly experience.
+#### Feature-Rich Learning Environment:
+
+Twitter boasts a wide array of functionalities, providing an excellent playground to practice various concepts in Laravel and Vue.js. This allowed me to delve into user authentication, real-time interactions, and data management, all of which are crucial aspects of web development.
+
+#### Abundant Learning Opportunities:
+
+Building a Twitter-like application required me to master common web development concepts such as authentication, authorization, database interactions, and UI/UX design. This project served as an invaluable learning ground for honing these fundamental skills in laravel and vue.js
+
 
 ## Features
 
 - User authentication and authorization
 - Tweet creation, deletion, and viewing
+- Tweet Retweet, Quote and Reply
+- Image uploads with previews
 - Follow/unfollow other users
-- Like and comment on tweets
-- User profiles with bio and avatar
+- Favorite and unfavorite tweets
+- User profiles with bio, stats and avatar
+- Notifiacations
+- Virtual list for infinite scroll with dynamic heights
+- CI/CD With Github actions
+- Unit Tests
+
+### Some Laravel Concepts Applied
+
+- Authentication
+- Queues
+- Broadcast
+- Events
+- Listeners
+- Observers
+- Query building
+- Pagination
+- Validation
+- Database Seeding
+- Database Migration
+- Redis
+- Eloquent Relations
+- Eloquent Factories
+- Eloquent Collections
+- File Storage
+- Testing
 
 ## Installation
 
@@ -35,7 +82,9 @@ composer install
 npm install && npm run dev
 ```
 
-4. Copy the `.env.example` file to `.env` and configure your environment variables, including database connection details.
+4. Copy the `.env.example` file to `.env` and configure your environment variables, including database connection details and pusher credentials
+
+--
 
 5. Generate a new application key:
 
@@ -43,10 +92,10 @@ npm install && npm run dev
 php artisan key:generate
 ```
 
-6. Migrate the database:
+6. Migrate and seed the database:
 
 ```bash
-php artisan migrate
+php artisan migrate --seed
 ```
 
 7. Serve the application:
@@ -55,11 +104,15 @@ php artisan migrate
 php artisan serve
 ```
 
-8. Visit `http://localhost:8000` in your web browser.
+8. Visit `http://localhost:8000` in your web browser and login using any user on the database, all generated passwords are **'password'**.
 
 ## Usage
 
-- Register for a new account or log in with existing credentials.
+- Log in with existing credentials.  
+
+        mail: vince.terry@gmail.com  
+        password: password  
+
 - Start posting tweets, following other users, and engaging with the community.
 
 ## Contributing
@@ -79,13 +132,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 For questions or feedback, feel free to contact the project owner:
 
-- Name: John Doe
-- Email: john.doe@example.com
+- Name: Giovanni Elgert
+- Email: giovanni.elgert@gmail.com
 
-## Additional Information
 
-Include any other information that might be relevant to users or contributors, such as future plans, known issues, or deployment instructions.
-
----
-
-Remember to replace placeholders like `https://your-image-url.com/logo.png`, `john.doe@example.com`, and `John Doe` with actual information. You may also want to create the `CONTRIBUTING.md` and `LICENSE` files mentioned in the README if they don't already exist in your repository.
