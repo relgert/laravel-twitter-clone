@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\SimulationJob;
+use App\Models\User;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -36,14 +38,35 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request)
     {
+        //dd($request->pathInfo);
+
         return array_merge(parent::share($request), [
             // Synchronously...
             'appName' => config('app.name'),
 
             // Lazily...
             'auth.user' => fn () => $request->user()
-                ? $request->user()->only('id', 'name', 'email','profile_picture','handle','pending_notifications')
+                ? $this->getCurrentUser($request)
                 : null,
+            'jobs.activeJob' => fn () => $request->user()
+                ? $this->getActiveJob($request->user())
+                : null
         ]);
+    }
+
+
+    private function getActiveJob($user){
+        $currentJob =  SimulationJob::where('user_id',$user->id)->orderBy('id','desc')->first();
+        if(!$currentJob){
+            $currentJob = new SimulationJob();
+        }
+        return $currentJob;
+    }
+
+    private function getCurrentUser($request){
+        if($request->path() == 'notifications'){
+            User::where('id',$request->user()->id)->update(['pending_notifications'=> 0]);
+        }
+        return $request->user()->only('id', 'name', 'email','profile_picture','handle','pending_notifications');
     }
 }

@@ -76,8 +76,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/favorite_tweet', [TweetController::class, 'favorite_tweet'])->name('favorite_tweet');
     Route::post('/unfavorite_tweet', [TweetController::class, 'unfavorite_tweet'])->name('unfavorite_tweet');
 
-    Route::get('/{user:handle}', [UserController::class, 'profile'])->name('profile');
+    Route::get('/start_simulation', [UserController::class, 'start_simulation'])->name('start_simulation');
 
+    // Last
+    Route::get('/{user:handle}', [UserController::class, 'profile'])->name('profile');
 });
 
 

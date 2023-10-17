@@ -42,4 +42,8 @@ Broadcast::channel('tweet_update.{tweetId}',  function (User $user, int $tweetId
     return true;
 });
 
+Broadcast::channel('jobs.{userId}',  function (User $user, int $userId) {
+    return $user->id === $userId;
+});
+
 

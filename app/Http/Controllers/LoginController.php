@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use App\Models\SimulationJob;
 
 class LoginController extends Controller
 {
@@ -20,8 +21,9 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
 
+            $request->session()->regenerate();
+            SimulationJob::startSimulation(Auth::user());
             return redirect()->intended('/');
         }
 

@@ -15,10 +15,12 @@ use App\Models\Tweet;
 use App\Models\TweetFavorite;
 use App\Models\UserNotification;
 use App\Models\UserFollower;
+use App\Models\SimulationJob;
 use App\Observers\TweetObserver;
 use App\Observers\UserNotificationObserver;
 use App\Observers\TweetFavoriteObserver;
 use App\Observers\UserFollowerObserver;
+use App\Observers\SimulationJobObserver;
 use Throwable;
 
 class EventServiceProvider extends ServiceProvider
@@ -49,6 +51,7 @@ class EventServiceProvider extends ServiceProvider
         UserFollower::observe(UserFollowerObserver::class);
         UserNotification::observe(UserNotificationObserver::class);
         TweetFavorite::observe(TweetFavoriteObserver::class);
+        SimulationJob::observe(SimulationJobObserver::class);
     }
 
     /**

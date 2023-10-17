@@ -1,12 +1,15 @@
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, reactive } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import useModal from "../../state/Modal";
 import TweetCreateModal from '../Tweet/Modal/TweetCreateModal.vue';
+import ActiveJobs from './ActiveJobs.vue';
 
 const page = usePage();
 
 const user = computed(() => page.props.auth.user)
+const jobs = computed(() => page.props.jobs)
+
 
 const pendingNotificaitons = ref('0');
 
@@ -47,8 +50,8 @@ onBeforeUnmount(() => {
             <ul class="nav nav-pills flex-column mb-sm-auto mb-auto " id="menu">
                 <li class="nav-item">
                     <a :href="route('home')" :class="{ 'active-link': $page.url === '/' }" class="nav-link align-middle">
-                        <i class="fs-6" :class="$page.url === '/' ? 'bi-house-door-fill' : 'bi-house-door'"></i>
-                        <span class="ms-2 fs-8 d-none d-lg-inline" style="font-size:0.8rem;">
+                        <i class="fs-5" :class="$page.url === '/' ? 'bi-house-door-fill' : 'bi-house-door'"></i>
+                        <span class="ms-2 fs-8 d-none d-lg-inline" style="font-size:1rem;">
                             Home
                         </span>
                     </a>
@@ -56,31 +59,35 @@ onBeforeUnmount(() => {
                 <li class="nav-item">
                     <a :href="route('notifications')" class="nav-link align-middle">
                         <span class="counter" v-if="pendingNotificaitons > 0">{{ pendingNotificaitons }}</span>
-                        <i class="fs-6" :class="$page.url === '/notifications' ? 'bi-bell-fill' : 'bi-bell'"></i>
-                        <span class="ms-2 fs-8 d-none d-lg-inline" style="font-size:0.8rem;">
+                        <i class="fs-5" :class="$page.url === '/notifications' ? 'bi-bell-fill' : 'bi-bell'"></i>
+                        <span class="ms-2 fs-8 d-none d-lg-inline" style="font-size:1rem;">
                             Notifications
                         </span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a :href="route('home')" class="nav-link align-middle">
-                        <i class="fs-6 bi-envelope"></i> <span class="ms-2 d-none d-lg-inline"
-                            style="font-size:0.8rem;">Messages</span></a>
+                        <i class="fs-5 bi-envelope"></i> <span class="ms-2 d-none d-lg-inline"
+                            style="font-size:1rem;">Messages</span></a>
                 </li>
                 <li class="nav-item">
                     <Link :href="route('profile',user.handle)" class="nav-link  align-middle">
-                        <i class="fs-6 bi-person"></i> <span class="ms-2 d-none d-lg-inline"
-                            style="font-size:0.8rem;">Profile</span></Link>
+                        <i class="fs-5 bi-person"></i> <span class="ms-2 d-none d-lg-inline"
+                            style="font-size:1rem;">Profile</span></Link>
                 </li>
                 <li class="nav-item">
                     <button class="d-none d-lg-block btn btn-primary" @click="handleClickPost">
-                        <span  style="font-size:0.8rem;">Post</span>
+                        <span  style="font-size:1rem;">Post</span>
                     </button>
                     <div class="d-flex d-lg-none btn-small" >
-                        <i class="fs-6 bi-pencil-square" @click="handleClickPost"></i>
+                        <i class="fs-5 bi-pencil-square" @click="handleClickPost"></i>
                     </div>
                 </li>
+                <li class="nav-item">
+                    <ActiveJobs :user="user" :jobs="jobs" :url="'/start_simulation'"></ActiveJobs>
+                </li>
             </ul>
+
             <hr>
             <div class="dropdown pb-4" style="max-width:200px;">
                 <a href="#" class="text-decoration-none" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false"
@@ -128,15 +135,15 @@ onBeforeUnmount(() => {
 .counter {
     position: absolute;
     background: rgb(29, 155, 240);
-    padding: 0px 4px;
+    padding: 0px 3px;
     border-radius: 10px;
-    border: 1px solid white;
+    border: 2px solid white;
     color: white;
     font-weight: bold;
-    margin-left: 6px;
-    margin-top: -5px;
+    margin-left: 8px;
+    margin-top: -6px;
     left: auto;
-    font-size: 0.6rem;
+    font-size: 11px;
 }
 
 
@@ -152,6 +159,12 @@ onBeforeUnmount(() => {
     padding:4px 8px;
     border-radius: 20px;
     color:white;
+    cursor: pointer;
+    margin-top:10px;
+}
+
+.btn-small i:hover{
+    background-color:#0b5ed7;
 }
 
 </style>

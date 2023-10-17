@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Container\Container;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Models\SimulationJob;
+
 
 class UserController extends Controller
 {
@@ -81,34 +83,29 @@ class UserController extends Controller
     }
 
     public function follow_user(User $user,Request $request){
+        $follower = User::find(Auth::user()->id);
+
         $valid = $request->validate([
             'id' => [
                 Rule::unique('user_followers')
                   ->where('followed_user_id', $user->id)
-                  ->where('follower_user_id', Auth::user()->id)
+                  ->where('follower_user_id', $follower->id)
             ],
         ]);
 
-        $userFollower = new UserFollower;
-        $userFollower->followed_user_id = $user->id;
-        $userFollower->follower_user_id = Auth::user()->id;
+        UserFollower::follow($user,$follower);
 
-        if($userFollower->save()){
-            $follower = User::find(Auth::user()->id);
-            $follower->increment_counter('following_count');
-            $user->increment_counter('followers_count');
-        }
         return User::find($user->id);
     }
 
     public function un_follow_user(User $user,Request $request){
-        $currentFollow = UserFollower::where('followed_user_id', $user->id)->where('follower_user_id', Auth::user()->id);
-        if($currentFollow){
-            $currentFollow->delete();
-            $follower = User::find(Auth::user()->id);
-            $follower->decrement_counter('following_count');
-            $user->decrement_counter('followers_count');
-        }
+        $follower = User::find(Auth::user()->id);
+        UserFollower::unfollow($user,$follower);
         return User::find($user->id);
+    }
+
+
+    function start_simulation(){
+        return SimulationJob::startSimulation(Auth::user());
     }
 }
