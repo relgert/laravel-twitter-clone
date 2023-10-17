@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tweet;
 use App\Models\TweetFavorite;
+use App\Models\UserFollower;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
@@ -23,14 +24,20 @@ class TweetController extends Controller
 
 
     public function timeline(Request $request){
-        //usleep(150000);
-        $tweets = Tweet::with('parent','parent.user','user')
-        ->with(['replies'=>function($query) {
-            return $query->limit(1);
-        }])
+
+        // get followers ids
+        $follows = UserFollower::where('follower_user_id',Auth::id())->pluck('followed_user_id')->toArray();
+
+        // insert own id
+        array_push($follows,Auth::id());
+
+        // find tweets
+        $tweets = Tweet::with('parent','parent.user','user','parent.parent','parent.parent.user')
+        ->whereIn('user_id',$follows)
         ->where('type','!=','reply')
         ->orderBy('id', 'desc')
         ->paginate(10);
+
 
         if($request->wantsJson()){
             return $tweets->toArray();
@@ -43,11 +50,7 @@ class TweetController extends Controller
 
 
     public function replies($tweet_id, Request $request){
-        usleep(150000);
-        $tweets = Tweet::with('parent','parent.user','user')
-        ->with(['replies'=>function($query) {
-            return $query->limit(1);
-        }])
+        $tweets = Tweet::with('parent','parent.user','user','parent.parent','parent.parent.user')
         ->where('parent_id',$tweet_id)
         ->where('type', 'reply')
         ->orderBy('id', 'desc')
@@ -58,11 +61,7 @@ class TweetController extends Controller
 
 
     public function user_tweets($user_id,Request $request){
-        usleep(150000);
-        $tweets = Tweet::with('parent','parent.user','user')
-        ->with(['replies'=>function($query) {
-            return $query->limit(1);
-        }])
+        $tweets = Tweet::with('parent','parent.user','user','parent.parent','parent.parent.user')
         ->where('user_id',$user_id)
         ->where('type','!=','reply')
         ->orderBy('id', 'desc')
@@ -79,17 +78,23 @@ class TweetController extends Controller
     }
 
 
-    public function show($tweet_id): Response
+    public function show($tweet_id,Request $request)
     {
-        $tweet = Tweet::with('parent','parent.user','user')
+        $tweet = Tweet::with('parent','parent.user','user','parent.parent','parent.parent.user')
         ->with(['replies'=>function($query) {
             return $query->limit(10);
         }])
         ->where('id', $tweet_id)->first();
 
-        return Inertia::render('Show', [
-            'tweet' => $tweet
-        ]);
+
+        if($request->wantsJson()){
+            return $tweet->toArray();
+        }else{
+            return Inertia::render('Show', [
+                'tweet' => $tweet
+            ]);
+        }
+
     }
 
 
@@ -111,7 +116,7 @@ class TweetController extends Controller
 
         $newTweet->save();
 
-        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user')->first();
+        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user','parent.parent','parent.parent.user')->first();
         return $tweet;
     }
 
@@ -138,7 +143,7 @@ class TweetController extends Controller
 
         $tweet->increment_counter('count_replies');
 
-        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user')->first();
+        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user','parent.parent','parent.parent.user')->first();
         return $tweet;
     }
 
@@ -161,7 +166,7 @@ class TweetController extends Controller
 
         $tweet->increment_counter('count_retweets');
 
-        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user')->first();
+        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user','parent.parent','parent.parent.user')->first();
         return $tweet;
     }
 
@@ -190,7 +195,7 @@ class TweetController extends Controller
         $newTweet->save();
 
         $tweet->increment_counter('count_retweets');
-        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user')->first();
+        $tweet = Tweet::where('id',$newTweet->id)->with('parent','parent.user','user','parent.parent','parent.parent.user')->first();
         return $tweet;
     }
 
@@ -203,15 +208,8 @@ class TweetController extends Controller
                   ->where('user_id', Auth::user()->id)
             ],
         ]);
-
-        $tweetFavorite = new TweetFavorite;
-        $tweetFavorite->tweet_id = $valid['tweet_id'];
-        $tweetFavorite->user_id = Auth::user()->id;
-        if($tweetFavorite->save()){
-            $tweet = Tweet::where('id',$valid['tweet_id'])->first();
-            $tweet->increment_counter('count_favorites');
-        }
-        $tweet = Tweet::where('id',$valid['tweet_id'])->with('parent','parent.user','user')->first();
+        $tweet = Tweet::where('id',$valid['tweet_id'])->first();
+        $tweet = Tweet::favorite($tweet,Auth::user());
 
         if($request->wantsJson()){
             return $tweet->toArray();
@@ -236,7 +234,7 @@ class TweetController extends Controller
         $tweetFavorite->delete();
         $tweet = Tweet::where('id',$valid['tweet_id'])->first();
         $tweet->decrement_counter('count_favorites');
-        $tweet = Tweet::where('id',$valid['tweet_id'])->with('parent','parent.user','user')->first();
+        $tweet = Tweet::where('id',$valid['tweet_id'])->with('parent','parent.user','user','parent.parent','parent.parent.user')->first();
         if($request->wantsJson()){
             return $tweet->toArray();
         }

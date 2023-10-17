@@ -5,7 +5,6 @@ namespace App\Observers;
 use App\Models\TweetFavorite;
 use App\Models\UserNotification;
 use App\Models\Tweet;
-use Auth;
 
 
 class TweetFavoriteObserver
@@ -16,18 +15,16 @@ class TweetFavoriteObserver
     public function created(TweetFavorite $favorited): void
     {
 
-        if(!Auth::user()){
-            return;
-        }
+
 
         $favoritedTweet = Tweet::find($favorited->tweet_id);
-        if($favoritedTweet->user_id == Auth::user()->id){
+        if($favoritedTweet->user_id == $favorited->user_id){
             return;
         }
 
         $notification = new UserNotification;
         $notification->user_id = $favoritedTweet->user_id;
-        $notification->notifier_user_id = Auth::user()->id;
+        $notification->notifier_user_id = $favorited->user_id;
         $notification->source_id = $favorited->tweet_id;
         $notification->source_type = 'favorite';
         $notification->save();

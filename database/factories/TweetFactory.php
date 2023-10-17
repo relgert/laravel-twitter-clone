@@ -17,9 +17,11 @@ class TweetFactory extends Factory
      */
     public function definition()
     {
+        $img = fake()->userName();
         return [
             'user_id'=>User::inRandomOrder()->first(),
             'text' => $this->faker->sentence(6),
+            'path' => 'https://picsum.photos/seed/'.$img.'/600/400'
         ];
     }
 }

@@ -4,7 +4,6 @@ namespace App\Observers;
 
 use App\Models\UserFollower;
 use App\Models\UserNotification;
-use Auth;
 
 
 class UserFollowerObserver
@@ -14,22 +13,17 @@ class UserFollowerObserver
      */
     public function created(UserFollower $userFollower): void
     {
-        if(!Auth::user()){
-            return;
-        }
 
-        if($userFollower->followed_user_id == Auth::user()->id){
+
+        if($userFollower->followed_user_id == $userFollower->follower_user_id){
             return;
         }
 
         $notification = new UserNotification;
         $notification->user_id = $userFollower->followed_user_id;
-        $notification->notifier_user_id = Auth::user()->id;
+        $notification->notifier_user_id = $userFollower->follower_user_id;
         $notification->source_type = 'follow';
         $notification->save();
-
-
-
     }
 
     /**

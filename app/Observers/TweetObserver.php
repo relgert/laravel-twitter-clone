@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Tweet;
+use App\Models\User;
 use App\Events\TweetCreatedEvent;
 use App\Events\TweetUpdateEvent;
 use Auth;
@@ -15,9 +16,11 @@ class TweetObserver
     public function created(Tweet $tweet): void
     {
         $tweet = Tweet::where('id',$tweet->id)->with('parent','parent.user','user')->first();
-        if(Auth::user()){
-            TweetCreatedEvent::dispatch($tweet,Auth::user());
-        }
+
+        $user = User::where('id',$tweet->user_id)->first();
+
+        TweetCreatedEvent::dispatch($tweet,$user);
+
 
     }
 

@@ -19,7 +19,9 @@ class Tweet extends Model
     public function getMediaAttribute()
     {
         $url = null;
-        if($this->path){
+        if( $this->path && strpos($this->path,'http') === 0){
+            $url = $this->path;
+        }else if($this->path){
             $url = '/storage/'.$this->path;
         }
         return $url;
@@ -98,5 +100,17 @@ class Tweet extends Model
     public function decrement_counter($counter = 'count_favorites'){
         $this->decrement($counter, 1);
         TweetUpdateEvent::dispatch($this);
+    }
+
+
+    static public function favorite(Tweet $tweet, User $user){
+        $tweetFavorite = new TweetFavorite;
+        $tweetFavorite->tweet_id = $tweet->id;
+        $tweetFavorite->user_id = $user->id;
+        if($tweetFavorite->save()){
+            $tweet = Tweet::where('id',$tweet->id)->first();
+            $tweet->increment_counter('count_favorites');
+        }
+        return Tweet::where('id',$tweet->id)->with('parent','parent.user','user')->first();
     }
 }
