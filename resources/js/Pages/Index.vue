@@ -16,7 +16,6 @@ const {currentTweets} = storeToRefs(tweetStore);
 
 let pendingTweetStore = usePendingTweetsStore();
 
-const {pendingTweets} = storeToRefs(pendingTweetStore);
 
 function vListIncludeConditions(vListItem){
     let types = ['tweet','retweet','quote'];
@@ -35,7 +34,7 @@ onMounted(() => {
     <div id="list_detail">
         <div id="list">
             <KeepAlive>
-                <VirtualList :paginationUrl="'/timeline'" name="tweets" :vName="'timeline'" :vPendingItems="pendingTweets" :vStore="tweetStore" :vTopItems="[$page.props.auth.user]" :vUpdateConditions="vListIncludeConditions">
+                <VirtualList :paginationUrl="'/timeline'" :vEndMessage="'No more tweets'" name="tweets" :vName="'timeline'" :vPendingItems="pendingTweetStore" :vStore="tweetStore" :vTopItems="[$page.props.auth.user]" :vUpdateConditions="vListIncludeConditions">
                     <template v-slot:header>
                         <div class="sticky-top index-header">
                             HOME

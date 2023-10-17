@@ -24,11 +24,16 @@ onMounted(() => {
 });
 
 function vListIncludeConditions(vListItem){
+
     let types = ['tweet','retweet','quote'];
-    if(types.includes(vListItem.type)){
-        return true;
+
+    if(vListItem.user_id != profileUser.value.id){
+        return false;
     }
-    return false;
+    if(!types.includes(vListItem.type)){
+        return false;
+    }
+    return true;
 }
 </script>
 
@@ -36,7 +41,7 @@ function vListIncludeConditions(vListItem){
     <div id="list_detail">
         <div id="list">
             <KeepAlive>
-                <VirtualList :paginationUrl="'/user/'+profileUser.id+'/tweets'" name="tweets"  :vStore="tweetStore" :vTopItems="[profileUser]" :vUpdateConditions="vListIncludeConditions">
+                <VirtualList :paginationUrl="'/user/'+profileUser.id+'/tweets'" name="tweets" :vEndMessage="'No more tweets'"   :vStore="tweetStore" :vTopItems="[profileUser]" :vUpdateConditions="vListIncludeConditions">
                     <template v-slot:header>
                         <div class="sticky-top index-header">
                             <a class="header-back-button" href="#" onclick="history.back();return false;">

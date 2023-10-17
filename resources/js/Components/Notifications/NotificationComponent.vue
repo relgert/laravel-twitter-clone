@@ -46,7 +46,7 @@ function showTweet(id){
             <div>
                 <div class="notification-container" style="padding-left:40px">
                     <div class="notification-title">
-                        <Link @click.stop="goTo(route('profile',notification.notifier_user.handle))">
+                        <Link :href="route('profile',notification.notifier_user.handle)" @click.stop="goTo(route('profile',notification.notifier_user.handle))">
                             {{ notification.notifier_user.name }}
                         </Link>
                         <div v-if="notification.source_type == 'favorite'">Liked your post</div>
@@ -107,6 +107,10 @@ function showTweet(id){
 
 .notification-title a{
     font-weight: bold;
+}
+
+.notification-title a:hover{
+    text-decoration: underline;
 }
 
 .notification-sm a{

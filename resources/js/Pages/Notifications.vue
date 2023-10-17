@@ -12,7 +12,7 @@ defineOptions({ layout: KinstaLayout });
     <div id="list_detail">
         <div id="list">
             <KeepAlive>
-                <VirtualList :paginationUrl="'/notifications_list'">
+                <VirtualList :paginationUrl="'/notifications_list'" :vEndMessage="''" :vEmptyMessage="'Nothing yet'">
                     <template v-slot:header>
                         <div class="sticky-top" >
                             <h6>Notifications</h6>

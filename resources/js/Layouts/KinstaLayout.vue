@@ -16,8 +16,7 @@ onMounted(() => {
     let pendingTweetsStore = usePendingTweetsStore();
     window.Echo.private('user.'+ user.value.id)
         .listen('.new_tweet', (e) => {
-            pendingTweetsStore.pendingTweets.push(e.tweet);
-            //emitter.emit('addPendingItems', e.tweet);
+            pendingTweetsStore.add(e.tweet);
         });
 
 

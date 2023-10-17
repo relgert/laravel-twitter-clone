@@ -20,10 +20,7 @@ class NotificationsController extends Controller
 {
     public function index(Request $request)
     {
-
-        User::where('id',Auth::id())->update(['pending_notifications'=> 0]);
         return Inertia::render('Notifications');
-
     }
 
     public function notifications_list(Request $request)
