@@ -104,13 +104,15 @@ export default {
     mixins: [SearchMixin, PassiveSupportMixin],
     props: {
         paginationUrl:{type: String},
-        vPendingItems:{type: Array,default: []},
+        vPendingItems:{type: Object,default: []},
         vStore:{type: Object,default: null},
         vTopItems:{type: Array,default: []},
         vName:{type: String,default:'virtual'},
         vAlwaysUpdate:{type: Boolean, default:false},
         vUpdateTypes:{type: Array,default: []},
-        vUpdateConditions:{type: Function, defautl: ()=>{return true}}
+        vUpdateConditions:{type: Function, defautl: ()=>{return true}},
+        vEmptyMessage:{type:String,default:'Nothing yet'},
+        vEndMessage:{type:String,default:'No more items'}
     },
     data() {
         let virtualListStore = useVirtualListStore(this.paginationUrl)();
@@ -191,20 +193,17 @@ export default {
             return {
                 height: this.viewportHeight + "px",
                 position: "relative",
+                overflow: "hidden",
                 willChange: "auto"
             };
         }
     },
     methods: {
-        addPendingItem(item){
-            this.pendingItems.push(item);
-            this.centerFloatingButton();
-        },
         showPendingItems(){
-            let items = this.processItems(this.vPendingItems,false);
+
+            let items = this.processItems(this.vPendingItems.items,false);
             this.insertItems(items,false,false);
-            //this.pendingItems = [];
-            emitter.emit('cleanPendingItems');
+            this.vPendingItems.clear();
         },
         myEventHandler(){
             this.centerFloatingButton();
@@ -295,12 +294,12 @@ export default {
                             this.heights.unshift(height);
                         }else{
                             let tmp =[];
-                            for(i = 0;i < this.vTopItems.length;i++){
+                            for(let k = 0;k < this.vTopItems.length;k++){
                                 tmp.unshift(this.heights.shift());
                             }
                             this.heights.unshift(height);
-                            for(i = 0;i < this.vTopItems.length;i++){
-                                this.heights.unshift(tmp[i]);
+                            for(let v = 0;v < this.vTopItems.length;v++){
+                                this.heights.unshift(tmp[v]);
                             }
                         }
 
@@ -334,6 +333,8 @@ export default {
                 //    console.log(id, "was not found");
                 // }
             }
+
+
             if(!insertAfter){
                 this.updatePageHeights();
             }
@@ -521,9 +522,6 @@ export default {
 
 
 
-        emitter.on('addPendingItems', newItem => {
-            this.addPendingItem(newItem,false);
-        });
 
         this.centerFloatingButton();
         window.addEventListener("resize", this.myEventHandler);
@@ -535,7 +533,7 @@ export default {
         let virtualListStore = useVirtualListStore(this.paginationUrl)();
         virtualListStore.data = this.$data;
         emitter.off('createdTweets');
-        emitter.off('addPendingItems');
+
     },
     destroyed() {
         this.$el.removeEventListener("scroll", this.handleScroll);
@@ -561,7 +559,7 @@ export default {
                 </div>
 
                 <div class="more" ref="floating-button" @click="showPendingItems" v-show="vPendingItems.length > 0">
-                    See New Posts
+                    See {{ vPendingItems.length }} New Posts
                 </div>
                 <div id="viewport" ref="viewport" :style="viewportStyle" class="vlist">
                     <div id="spacer" ref="spacer" :style="spacerStyle">
@@ -574,10 +572,13 @@ export default {
                     <div v-if="loading" style="text-align: center;padding:10px 0px 100px 0px;">
                         <img src="/images/loading.gif" height="50" />
                     </div>
-
-                    <div v-if="!url" style="text-align: center;padding:10px 0px 200px 0px;">
-
+                    <div v-if="!url && visibleItems.length == 0" style="text-align: center;padding:10px 0px;height: fit-content;font-weight: bold;">
+                        <div>{{vEmptyMessage}}</div>
                     </div>
+                    <div v-if="!url && visibleItems.length > 0" style="text-align: center;padding:10px 0px;height: fit-content;font-weight: bold;">
+                        <div>{{vEndMessage}}</div>
+                    </div>
+
 
                 </div>
 
