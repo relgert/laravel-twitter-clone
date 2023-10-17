@@ -7,8 +7,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
     });
 
   const loginForm = useForm({
-        email: '',
-        password: ''
+        email: 'vince.terry@gmail.com',
+        password: 'password'
     });
 
     const submit = () => {
@@ -48,11 +48,12 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
                                     <div class="d-grid">
                                         <button class="btn btn-lg btn-primary btn-login text-uppercase fw-bold mb-2"
                                             type="submit">Sign in</button>
-                                        <div class="text-center">
-                                            <a class="small" href="#">Forgot password?</a>
-                                        </div>
                                     </div>
                                 </form>
+                                <div style="padding-top:20px;">
+                                    <div>email: <b>vince.terry@gmail.com</b></div>
+                                    <div>password: <b>password</b></div>
+                                </div>
                             </div>
                         </div>
                     </div>

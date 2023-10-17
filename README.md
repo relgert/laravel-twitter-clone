@@ -5,7 +5,7 @@
 
 http://twitter.giovanni-elgert.info
 
-        mail: vince.terry@gmail.com  
+        mail: vince.terry@gmail.com
         password: password
 
 

@@ -60,6 +60,9 @@ services:
     container_name: twitterclone-horizon
     restart: always
     command: "php artisan horizon"
+    depends_on:
+      db:
+          condition: service_healthy
     env_file:
       - .env.docker
     volumes:
