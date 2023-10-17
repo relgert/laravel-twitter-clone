@@ -48,7 +48,7 @@ export default {
                         María Jiménez
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        125K posts
                     </div>
                 </div>
                 <div class="trending-item">
@@ -56,10 +56,10 @@ export default {
                         2·Only on Twitter · Trending
                     </div>
                     <div class="trending-item-body">
-                        María Jiménez
+                        Álvaro Prieto
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        182K posts
                     </div>
                 </div>
                 <div class="trending-item">
@@ -67,10 +67,10 @@ export default {
                         3·Only on Twitter · Trending
                     </div>
                     <div class="trending-item-body">
-                        María Jiménez
+                        Renfe
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        51.9K posts
                     </div>
                 </div>
                 <div class="trending-item">
@@ -78,10 +78,10 @@ export default {
                         4·Only on Twitter · Trending
                     </div>
                     <div class="trending-item-body">
-                        María Jiménez
+                        #CopaDelRey
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        1,773 posts
                     </div>
                 </div>
                 <div class="trending-item">
@@ -89,10 +89,10 @@ export default {
                         5·Only on Twitter · Trending
                     </div>
                     <div class="trending-item-body">
-                        María Jiménez
+                        Bélgica
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        88.2K posts
                     </div>
                 </div>
                 <div class="trending-item">
@@ -100,10 +100,10 @@ export default {
                         6·Only on Twitter · Trending
                     </div>
                     <div class="trending-item-body">
-                        María Jiménez
+                        Albert
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        51.7K posts
                     </div>
                 </div>
                 <div class="trending-item">
@@ -111,10 +111,10 @@ export default {
                         7·Only on Twitter · Trending
                     </div>
                     <div class="trending-item-body">
-                        María Jiménez
+                        Michael
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        239K posts
                     </div>
                 </div>
                 <div class="trending-item">
@@ -122,10 +122,10 @@ export default {
                         8·Only on Twitter · Trending
                     </div>
                     <div class="trending-item-body">
-                        María Jiménez
+                        Alpiste
                     </div>
                     <div class="trending-item-bottom">
-                        3,948 posts
+                        1,422 posts
                     </div>
                 </div>
             </div>

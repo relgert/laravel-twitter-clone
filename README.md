@@ -49,17 +49,25 @@ Building a Twitter-like application required me to master common web development
 - Events
 - Listeners
 - Observers
-- Query building
 - Pagination
 - Validation
+- Redis
+- Horizon
 - Database Seeding
 - Database Migration
-- Redis
+- Eloquent Query building
 - Eloquent Relations
 - Eloquent Factories
 - Eloquent Collections
 - File Storage
 - Testing
+
+### Some Vue.js Concepts Applied
+
+- Pinia store
+- Higher Order Components (HOC)
+- Reusable Virtual list with dynamic heights tested: 10k items with images
+- Reusable Modal
 
 ## Installation
 
