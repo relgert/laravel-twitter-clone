@@ -14,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\User;
 use App\Models\SimulationJob;
 
-class SimulateActivityAfterLogin implements ShouldQueue, ShouldBeUnique
+class SimulateActivityAfterLogin implements ShouldQueue
 {
     use Dispatchable, Queueable, SerializesModels;
 
