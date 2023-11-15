@@ -1,14 +1,6 @@
 # Laravel-Vue.js Twitter Clone
 
 
-## Live demo
-
-http://twitter.giovanni-elgert.info
-
-        mail: vince.terry@gmail.com
-        password: password
-
-
 ## Overview
 
 I embarked on creating a Twitter clone using Laravel and Vue.js, driven by its familiarity and robust feature set. This project provided a real-world application to practice essential web development concepts, while also allowing room for creative innovation. The result is a showcase of my proficiency in building user-centric web applications.
